@@ -1,0 +1,37 @@
+#floating-baby-head {
+    position: fixed;
+    top: -2000px;
+    left: -2000px;
+    z-index: 11000;
+    width: auto !important;
+    -webkit-user-select: none;
+}
+
+#gfbh-score-display {
+    z-index: 1997;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: gray;
+    border-radius: 4px;
+    padding: 5px 10px;
+    color: white;
+    font-family: Arial;
+    text-align: center;
+}
+
+#gfbh-score-display #gfbh-score {
+    z-index: 1998;
+    font-size: 30px;
+    line-height: normal;
+}
+
+#gfbh-score-display #gfbh-score.gfbh-is-high-score {
+    color: blue;
+}
+
+#gfbh-score-display #gfbh-high-score {
+    white-space: nowrap;
+    clear: both;
+    font-size: 11px;
+}
