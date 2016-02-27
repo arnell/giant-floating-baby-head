@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Giant Floating Baby Head (GFBH) Extension Options</title>
+        <script src="../lib/jquery-2.1.1.min.js"></script>
+        <link type="text/css" rel="stylesheet" href="../css/options.css">
+    </head>
+    <body>
+    <h2>Giant Floating Baby Head (GFBH) Extension Options</h2>
+        Configure GFBH to function the way you want.
+        <br>Am I missing a setting you'd like to configure? Did you find a bug? Do you want to help by translating this page? Let me know at <a href="https://github.com/homelessbread/giant-floating-baby-head/issues">https://github.com/homelessbread/giant-floating-baby-head/issues</a>!
+
+        <br><h4 style="margin-bottom:0;">Image URL:</h4>
+        Want an image other than the floating baby head?  Enter the URL of the image that should float across the web browser window.  An image with transparency is recommended. The image will be displayed with its original dimensions.
+        <br><input id='imageUrl' type='text'>
+
+        <br><h4 style="margin-bottom:0;">Timing:</h4>
+        When do you want the floating baby head to appear?
+        <br><input id="random" type="radio" name="timing" value="random" checked> Random
+        <br><input id="every" type="radio" name="timing" value="every"> Every <input id="everyValue" type="text" placeholder="42" size="2"> minutes
+        <br><input id="at" type="radio" name="timing" value="at"> At <input id="atValue" type="text" placeholder="13:37" size="2"> (24-hour clock)
+        
+        <br><b>You can trigger the appearance of the Baby Head by pressing Ctrl+Shift+F on most webpages.</b>
+        <br><br>
+        <button id="save" style="float:left">Save</button><div id="status"></div>
+
+        <br><br>Don't forget to <a href="https://chrome.google.com/webstore/detail/dikflngfkaandpfjpaonobhjjpdbacni" target="_blank">rate the extension</a>!
+        <script src="../js/options.js"></script>
+    </body>
+</html>

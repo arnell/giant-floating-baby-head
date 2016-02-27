@@ -1,0 +1,9 @@
+#status {
+    color: green;
+    float: left;
+    padding-top: 4px;
+}
+
+#status.error {
+    color: red;
+}
