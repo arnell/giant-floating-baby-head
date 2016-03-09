@@ -1,3 +1,10 @@
+/**
+ * Copyright 2015. Greg Arnell.
+ **/
+
+/*jslint node: true */
+"use strict";
+
 function showStatus(status) {
     // Update status to let user know options were saved.
     var statusDiv = $('#status');

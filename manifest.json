@@ -1,3 +1,7 @@
+/**
+ * Copyright 2015. Greg Arnell.
+ **/
+
 {
     "name": "Giant Floating Baby Head",
 	"short_name": "GFBH",
@@ -6,7 +10,13 @@
     "content_scripts": [{
         "matches": ["http://*/*", "https://*/*"],
         "css": ["css/css.css"],
-        "js": ["lib/jquery-2.1.1.min.js","js/script.js"]
+        "js": [
+            "lib/jquery-2.1.1.min.js",
+            "js/FavIcon.js",
+            "js/HighScoreDisplay.js",
+            "js/FBH.js",
+            "js/script.js"
+        ]
     }],
     "web_accessible_resources": ["img/baby_head.png"],
     "icons": {
