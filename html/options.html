@@ -1,30 +1,49 @@
+<!--
+    Copyright 2016 Greg Arnell.
+-->
 <!DOCTYPE html>
 <html>
     <head>
         <title>Giant Floating Baby Head (GFBH) Extension Options</title>
         <script src="../lib/jquery-2.1.1.min.js"></script>
+        <script src="../js/ChromeStorageHelper.js"></script>
+        <script src="../js/options.js"></script>
         <link type="text/css" rel="stylesheet" href="../css/options.css">
     </head>
     <body>
     <h2>Giant Floating Baby Head (GFBH) Extension Options</h2>
-        Configure GFBH to function the way you want.
-        <br>Am I missing a setting you'd like to configure? Did you find a bug? Do you want to help by translating this page? Let me know at <a href="https://github.com/homelessbread/giant-floating-baby-head/issues">https://github.com/homelessbread/giant-floating-baby-head/issues</a>!
+        <h5>Configure GFBH to function the way you want.</h5>
+        <fieldset>
+            <legend><h4>Image URLs:</h4></legend>
+            Want images other than the floating baby head?  Enter the URLs of the images that should float across the web browser window.
+            <ul id="imageTips">
+                <li>Images with transparency are highly recommended.</li>
+                <li>Images will be displayed with their original dimensions.</li>
+            </ul>
+            <table>
+                <tr>
+                    <td><div id="imageUrls"></div></td>
+                    <td class="addImageUrlButtonCell"><button id="addImageUrl">+</button></td>
+                </tr>
+            </table>
+        </fieldset>
+        <br>
+        <fieldset>
+            <legend><h4>Timing:</h4></legend>
 
-        <br><h4 style="margin-bottom:0;">Image URL:</h4>
-        Want an image other than the floating baby head?  Enter the URL of the image that should float across the web browser window.  An image with transparency is recommended. The image will be displayed with its original dimensions.
-        <br><input id='imageUrl' type='text'>
+            When do you want the floating baby head to appear?
+            <br><input id="random" type="radio" name="timing" value="random" checked> Random
+            <br><input id="every" type="radio" name="timing" value="every"> Every <input id="everyValue" type="text" placeholder="42" size="2"> minutes
+            <br><input id="at" type="radio" name="timing" value="at"> At <input id="atValue" type="text" placeholder="13:37" size="2"> (24-hour clock)
 
-        <br><h4 style="margin-bottom:0;">Timing:</h4>
-        When do you want the floating baby head to appear?
-        <br><input id="random" type="radio" name="timing" value="random" checked> Random
-        <br><input id="every" type="radio" name="timing" value="every"> Every <input id="everyValue" type="text" placeholder="42" size="2"> minutes
-        <br><input id="at" type="radio" name="timing" value="at"> At <input id="atValue" type="text" placeholder="13:37" size="2"> (24-hour clock)
-        
-        <br><b>You can trigger the appearance of the Baby Head by pressing Ctrl+Shift+F on most webpages.</b>
+            <br><em class="info">You can trigger the appearance of the Baby Head by pressing Ctrl+Shift+F on most webpages.</em>
+        </fieldset>
         <br><br>
-        <button id="save" style="float:left">Save</button><div id="status"></div>
+        <button id="save">Save</button><div id="status"></div>
 
-        <br><br>Don't forget to <a href="https://chrome.google.com/webstore/detail/dikflngfkaandpfjpaonobhjjpdbacni" target="_blank">rate the extension</a>!
-        <script src="../js/options.js"></script>
+        <br><br>Am I missing a setting you'd like to configure? Did you find a bug? Do you want to help by translating this page?
+        <li>Let me know at <a href="https://github.com/homelessbread/giant-floating-baby-head/issues" target="_blank">https://github.com/homelessbread/giant-floating-baby-head/issues</a> or greg.arnell@gmail.com!</li>
+        <br>Don't forget to <a href="https://chrome.google.com/webstore/detail/dikflngfkaandpfjpaonobhjjpdbacni" target="_blank">rate the extension</a>!
+
     </body>
 </html>

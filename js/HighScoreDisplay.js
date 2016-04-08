@@ -1,9 +1,9 @@
 /**
- * Copyright 2015. Greg Arnell.
+ * Copyright 2016 Greg Arnell.
  **/
 
 /*jslint node: true */
-"use strict";
+'use strict';
 
 /**
  * High Score Display Class definition
@@ -15,12 +15,12 @@ HighScoreDisplay.prototype = {
 
     show: function (value, highScore) {
         var scoreDiv, highScoreDiv;
-        
+
         if (!$('#gfbh-score-display').length && value) {
-            $('<div id="gfbh-score-display" title="Floating Baby Head Hit Count"><div id="gfbh-score"/><div id="gfbh-high-score"/></div>').appendTo("body");
+            $('<div id="gfbh-score-display" title="Floating Baby Head Hit Count"><div id="gfbh-score"/><div id="gfbh-high-score"/></div>').appendTo('body');
             this.scoreDisplayDiv = $('#gfbh-score-display');
         }
-        
+
         scoreDiv = $('#gfbh-score');
         scoreDiv.text(value);
         highScoreDiv = $('#gfbh-high-score');
@@ -37,7 +37,7 @@ HighScoreDisplay.prototype = {
     },
     destroy: function () {
         var me = this;
-        if (me.scoreDisplayDiv) {
+        if (me.scoreDisplayDiv && !me.timeoutId) {
             me.timeoutId = setTimeout(function () {
                 me.timeoutId = null;
                 me.scoreDisplayDiv.animate({

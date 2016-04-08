@@ -1,19 +1,21 @@
 /**
- * Copyright 2015. Greg Arnell.
+ * Copyright 2016 Greg Arnell.
  **/
 
 /*jslint node: true */
-"use strict";
+'use strict';
 
+// Update status to let user know if options were saved.
 function showStatus(status) {
-    // Update status to let user know options were saved.
     var statusDiv = $('#status');
     if (!status) {
         statusDiv.removeClass('error');
         statusDiv.html('Options saved.');
         setTimeout(function () {
-            statusDiv.html('');
-        }, 1000);
+            if (!statusDiv.hasClass('error')) {
+                statusDiv.html('');
+            }
+        }, 2000);
     } else {
         statusDiv.addClass('error');
         statusDiv.html(status);
@@ -22,10 +24,18 @@ function showStatus(status) {
 
 // Saves options to chrome.storage
 function save_options() {
-    var imageUrl = $('#imageUrl').val(),
+    var imageUrlsFields = $('.imageUrl'),
+        images = [],
         timingType = $('input[name="timing"]:checked').val(),
-        timingData;
-    
+        timingData, imageUrl;
+
+    for (var i = 0; i < imageUrlsFields.size(); i++) {
+        imageUrl = imageUrlsFields[i].value;
+        if (imageUrl) {
+            images.push({url:imageUrl});
+        }
+    }
+
     switch (timingType) {
         case 'every':
             timingData = $('#everyValue').val();
@@ -42,22 +52,25 @@ function save_options() {
             }
             break;
     }
-    
-    chrome.storage.sync.set({
-        imageUrl: imageUrl,
-        timing: {
-            type: timingType,
-            data: timingData
+
+    ChromeStorageHelper.setItems(
+        {
+            images: images,
+            timing: {
+                type: timingType,
+                data: timingData
+            }
+        },
+        function () {
+            showStatus();
+            restore_options();
         }
-    }, showStatus);
-    if (!imageUrl) {
-        chrome.storage.sync.remove('imageUrl');
-    }
+    );
 }
 
 function validateTime(time) {
     var splitTime, hours, mins;
-    
+
     if (typeof time !== 'string') {
         return false;
     }
@@ -74,17 +87,36 @@ function validateTime(time) {
 // Restores select box and checkbox state using the preferences
 // stored in chrome.storage.
 function restore_options() {
-    // Use default value ''
-    chrome.storage.sync.get({
-        imageUrl: '',
-        timing: {}
-    }, function (items) {
-        $('#imageUrl').val(items.imageUrl);
-        if (items.timing) {
-            $('#' + items.timing.type).prop('checked', true);
-            $('#' + items.timing.type + 'Value').val(items.timing.data);
-        }
-    });
+    ChromeStorageHelper.getItems(
+        function (items) {
+            $('#imageUrls').empty();
+            if (items.images.length) {
+                for (var i = 0; i < items.images.length; i++) {
+                    addImageUrlField(items.images[i].url);
+                }
+            } else {
+                addImageUrlField('');
+            }
+            if (items.timing) {
+                $('#' + items.timing.type).prop('checked', true);
+                $('#' + items.timing.type + 'Value').val(items.timing.data);
+            }
+        },
+        false
+    );
 }
-document.addEventListener('DOMContentLoaded', restore_options);
-document.getElementById('save').addEventListener('click', save_options);
+$(document).ready(function () {
+    restore_options();
+    $('#save').click(save_options);
+    $('#addImageUrl').click(function () {
+        addImageUrlField();
+    });
+});
+
+function addImageUrlField(value) {
+    var number = $('.imageUrl').size(),
+        id = 'imageUrl' + number;
+
+    $('#imageUrls').append('<input id="' + id + '" type="text" class="imageUrl" placeholder="http://example.com/image.png">');
+    $('#'+id).val(value);
+}

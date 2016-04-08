@@ -1,15 +1,14 @@
 /**
- * Copyright 2015. Greg Arnell.
+ * Copyright 2016 Greg Arnell.
  **/
 
 /*jslint node: true */
-"use strict";
+'use strict';
 
 /**
  * FavIcon Class Definition
  **/
-function FavIcon(url) {
-    this.url = url;
+function FavIcon() {
     this.findIcon();
 }
 FavIcon.prototype = {
@@ -18,7 +17,7 @@ FavIcon.prototype = {
     el: null,
     foundIcon: false,
     enabled: false,
-    
+
     findIcon: function () {
         var me = this,
             image = new Image(),
@@ -32,7 +31,10 @@ FavIcon.prototype = {
         };
         image.src = imageUrl;
     },
-    
+
+    /**
+     * @private
+     */
     createIconEl: function () {
         var el = document.createElement('link');
         el.type = 'image/x-icon';
@@ -41,7 +43,10 @@ FavIcon.prototype = {
         document.getElementsByTagName('head')[0].appendChild(el);
         this.el = el;
     },
-    
+
+    /**
+     * @private
+     */
     setIcon: function (url) {
         var me = this,
             newEl;
@@ -55,15 +60,17 @@ FavIcon.prototype = {
             me.el = newEl;
         }
     },
-    
-    display: function () {
-        this.setIcon(this.url);
+
+    display: function (url) {
+        if (this.isEnabled()) {
+            this.setIcon(url);
+        }
     },
-    
+
     reset: function () {
         this.setIcon(this.originalUrl);
     },
-    
+
     isEnabled: function () {
         return this.enabled;
     }
