@@ -1,17 +1,20 @@
 /**
- * Copyright 2015. Greg Arnell.
+ * Copyright 2016 Greg Arnell.
  **/
 
 {
     "name": "Giant Floating Baby Head",
 	"short_name": "GFBH",
     "description": "Enjoy a random Giant Floating Baby Head",
-    "version": "0.6.6",
+    "version": "0.7",
     "content_scripts": [{
         "matches": ["http://*/*", "https://*/*"],
         "css": ["css/css.css"],
         "js": [
             "lib/jquery-2.1.1.min.js",
+            "js/ChromeStorageHelper.js",
+            "js/RandUtil.js",
+            "js/FloatingImage.js",
             "js/FavIcon.js",
             "js/HighScoreDisplay.js",
             "js/FBH.js",

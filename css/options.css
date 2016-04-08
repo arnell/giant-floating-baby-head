@@ -1,9 +1,63 @@
+body {
+    font-size: 15px;
+}
+
 #status {
     color: green;
     float: left;
     padding-top: 4px;
 }
 
+#status {
+    margin-left: 5px;
+}
+
 #status.error {
     color: red;
+}
+
+.imageUrl  {
+    display: block;
+    width: 500px;
+    margin-top: 2px;
+}
+
+.addImageUrlButtonCell {
+    vertical-align: bottom;
+}
+
+#addImageUrl {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 18px;
+}
+
+#imageTips {
+    font-size: 14px;
+    margin: 0;
+}
+
+fieldset {
+    display: inline-block;
+}
+
+.info:before {
+    content: "\24d8";
+    font-style: normal;
+    padding-right: 2px;
+}
+
+#save {
+    font-size: 17px;
+    float: left;
+}
+
+h4 {
+    margin-bottom: 0;
+}
+
+h5 {
+    font-size: 15px;
+    font-weight: normal;
+    margin: 0 0 5px;
 }
