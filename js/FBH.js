@@ -1,198 +1,239 @@
 /**
- * Copyright 2015. Greg Arnell.
+ * Copyright 2016 Greg Arnell.
  **/
 
 /*jslint node: true */
-"use strict";
+'use strict';
 
 /**
  * FBH Class Definition
- * @param {String} imageUrl Url of image to display
- * @param {Object} timing 
+ * @param {Object[]} images image configs of images to display
+ * @param {Object} timing
  * @param {[[Type]]} timing.type
  * @param {[[Type]]} timing.data
  * @param {Number} hitHighScore
  */
-function FBH(imageUrl, timing, hitHighScore) {
-    this.imageUrl = imageUrl;
-    this.timing = timing;
-    this.hitHighScore = hitHighScore;
-    this.highScoreDisplay = new HighScoreDisplay();
+function FBH(images, timing, hitHighScore) {
+    var me = this;
+
+    me.images = images;
+    me.timing = timing;
+    me.hitHighScore = hitHighScore;
+    me.highScoreDisplay = new HighScoreDisplay();
+    me.favIcon = new FavIcon();
 }
+
 FBH.prototype = {
     MINUTE: 60000,
     DAY: 86400000,
     ANIMATION_DURATION: 3000,
-    ANIMATION_ROTATION_CHANCE: 70,
+    ANIMATION_ROTATION_CHANCE: 80,
     FAVICON_DURATION: 4000,
     FAVICON_SWAP_CHANCE: 5,
-    
-    imageUrl: null,
+
+    images: [],
     timing: null,
-    maxLength: 0,
-    height: 0,
     favIcon: null,
-    imageLoaded: false,
-    showingBaby: false,
-    hitCount: 0,
+    showingFavIcon: false,
+    activeImages: {},
     highScoreDisplay: null,
-    
+    nextAppearanceTimeoutId: null,
+
     start: function () {
-        var me = this,
-            image = new Image();
-        
-        image.onload = function () {
-            me.maxLength = Math.max(this.width, this.height);
-            me.height = this.height;
-            setTimeout(
-                function () { me.showBabyHead(); },
-                me.getTimeout()
-            );
-            me.favIcon = new FavIcon(me.imageUrl);
-            me.imageLoaded = true;
-            $(document.body).keypress(function (event) {
-                if (event.ctrlKey && event.shiftKey && event.which === 6) {
-                    me.showBabyHead();
-                }
-            });
-            $(document.body).on('mousedown', '#floating-baby-head', function () {
-                me.onBabyHeadClick.apply(me, arguments);
-            });
-        };
-        image.src = me.imageUrl;
+        var me = this;
+
+        $(document.body).keypress(function (event) {
+            if (event.ctrlKey && event.shiftKey && event.which === 6) {
+                me.showBabyHead();
+            }
+        });
+        me.setBabyHeadTimeout();
     },
-    
+
     showBabyHead: function () {
         var me = this;
-        
-        if (!me.imageLoaded || me.showingBaby) {
-            me.setBabyHeadTimeout();
+
+        clearTimeout(me.nextAppearanceTimeoutId);
+        me.nextAppearanceTimeoutId = null;
+
+        // Only allow one image at a time
+        if (me.activeImageExists()) {
             return false;
         }
-        
-        if (me.favIcon.isEnabled() && me.getRandBool(me.FAVICON_SWAP_CHANCE)) {
+
+        if (me.favIcon.isEnabled() && RandUtil.getRandBool(me.FAVICON_SWAP_CHANCE)) {
             me.showFavIconBabyHead();
         } else {
             me.showFloatingBabyHead();
         }
     },
-    
+
     showFloatingBabyHead: function () {
         var me = this,
-            babyHeadImg,
-            pos = me.calculateStartAndEndPositions();
+            imageIndex = RandUtil.getRand(me.images.length),
+            image = me.images[imageIndex],
+            floatingImage = new FloatingImage(image),
+            pos = me.calculateStartAndEndPositions(floatingImage.maxLength),
+            angle = 0;
 
-        me.showingBaby = true;
-        me.hitCount = 0;
-        $('<img id="floating-baby-head" height="' + this.height + '" src="' + me.imageUrl + '"/>').appendTo("body");
-        babyHeadImg = $("#floating-baby-head");
-        babyHeadImg.css({
-            left: pos[0].x,
-            top: pos[0].y
-        });
-        babyHeadImg.animate({
-            left: pos[1].x,
-            top: pos[1].y
-        }, me.ANIMATION_DURATION, me.onAnimationComplete.bind(me));
-        if (me.getRandBool(me.ANIMATION_ROTATION_CHANCE)) {
-            babyHeadImg.animateRotate(me.getRand(180) - 90, {
-                duration: me.ANIMATION_DURATION,
-                easing: me.getRandBool() ? 'linear' : 'swing'
-            });
+        floatingImage.addObserver(me);
+        me.addActiveImage(floatingImage);
+        if (floatingImage.imageLoaded) {
+            me.onImageLoaded(floatingImage);
+        } else {
+            floatingImage.init(me.onImageLoaded.bind(me), me.onAnimationComplete.bind(me));
         }
-        chrome.storage.sync.get(
-            {
-                hitHighScore: 0
-            },
+    },
+
+    onImageLoaded: function (floatingImage) {
+        var me = this,
+            pos = me.calculateStartAndEndPositions(floatingImage.maxLength),
+            angle = 0;
+
+        if (RandUtil.getRandBool(me.ANIMATION_ROTATION_CHANCE)) {
+            angle = RandUtil.getRand(180) - 90;
+        }
+        floatingImage.show(pos, me.ANIMATION_DURATION, angle);
+
+        ChromeStorageHelper.getItems(
             function (items) {
                 me.highScoreDisplay.show(0, items.hitHighScore);
                 me.hitHighScore = items.hitHighScore;
+            },
+            true
+        );
+    },
+
+    showFavIconBabyHead: function () {
+        var me = this,
+            imageIndex = RandUtil.getRand(me.images.length),
+            image = me.images[imageIndex],
+            floatingImage = new FloatingImage(image);
+
+        if (me.showingFavIcon) {
+            return;
+        }
+        me.showingFavIcon = true;
+        floatingImage.init(
+            function () {
+                me.favIcon.display(image.url);
+                setTimeout(
+                    function () {
+                        me.favIcon.reset();
+                        me.showingFavIcon = false;
+                        me.setBabyHeadTimeout();
+                    },
+                    me.FAVICON_DURATION
+                );
+            },
+            function () {
+                me.showingFavIcon = false;
+                me.setBabyHeadTimeout();
             }
         );
-        me.setBabyHeadTimeout();
     },
-    
-    showFavIconBabyHead: function () {
-        var me = this;
-        
-        me.showingBaby = true;
-        me.favIcon.display();
-        setTimeout(
-            function () {
-                me.favIcon.reset();
-                me.showingBaby = false;
-            },
-            me.FAVICON_DURATION
-        );
-        me.setBabyHeadTimeout();
-    },
-    
+
     setBabyHeadTimeout: function () {
         var me = this;
-        
-        setTimeout(
+
+        if (me.nextAppearanceTimeoutId) {
+            return;
+        }
+        me.nextAppearanceTimeoutId = setTimeout(
             function () {
+                me.nextAppearanceTimeoutId = null;
                 me.showBabyHead();
             },
             me.getTimeout()
         );
     },
-    
-    onAnimationComplete: function () {
-        var me = this,
-            hitCount = me.hitCount;
-        
-        $("#floating-baby-head").remove();
-        me.showingBaby = false;
-        me.highScoreDisplay.destroy();
-        chrome.storage.sync.get(
-            {
-                hitHighScore: 0,
-                totalHits: 0
-            },
-            function (items) {
-                var hitHighScore = items.hitHighScore;
-                if (hitCount > hitHighScore) {
-                    hitHighScore = hitCount;
-                }
-                chrome.storage.sync.set({
-                    totalHits: items.totalHits + me.hitCount,
-                    hitHighScore: hitHighScore
-                });
-                me.hitHighScore = hitHighScore;
-            }
-        );
+
+    notify: function (obj, event, data) {
+        switch (event) {
+            case 'complete':
+                this.onAnimationComplete(obj, data);
+                break;
+            case 'click':
+                this.onBabyHeadClick(obj, data);
+                break;
+        }
     },
 
-    calculateStartAndEndPositions: function () {
+    onAnimationComplete: function (floatingImage) {
+        var me = this,
+            hitCount = floatingImage.hitCount;
+
+        me.removeActiveImage(floatingImage);
+        floatingImage.removeObserver(me);
+        me.highScoreDisplay.destroy();
+        if (!me.activeImageExists()) {
+            me.setBabyHeadTimeout();
+        }
+        if (hitCount) {
+            ChromeStorageHelper.getItems(
+                function (items) {
+                    var hitHighScore = Math.max(items.hitHighScore, hitCount);
+                    ChromeStorageHelper.setItems({
+                        totalHits: items.totalHits + hitCount,
+                        hitHighScore: hitHighScore
+                    });
+                    me.hitHighScore = hitHighScore;
+                },
+                true
+            );
+        }
+    },
+
+    addActiveImage: function (floatingImage) {
+        var me = this;
+        if (me.activeImages[floatingImage.url]) {
+            me.activeImages[floatingImage.url] += 1;
+        } else {
+            me.activeImages[floatingImage.url] = 1;
+        }
+    },
+
+    removeActiveImage: function (floatingImage) {
+        var me = this;
+        me.activeImages[floatingImage.url] -= 1;
+        if (!me.activeImages[floatingImage.url]) {
+            delete me.activeImages[floatingImage.url];
+        }
+    },
+
+    activeImageExists: function () {
+        return !!Object.keys(this.activeImages).length || this.showingFavIcon;
+    },
+
+    calculateStartAndEndPositions: function (maxLength) {
         var me = this,
             w = window.innerWidth,
             h = window.innerHeight,
-            startSide = me.getRand(4), //0: top, 1: right, 2: bottom, 3: left
+            startSide = RandUtil.getRand(4), //0: top, 1: right, 2: bottom, 3: left
             endSide = (startSide + 2) % 4;
 
         if (startSide % 2) {
             return [
-                {x: startSide > 1 ? -me.maxLength : w + me.maxLength / 2, y: me.getRand(h)},
-                {x: endSide > 1 ?  -me.maxLength : w + me.maxLength / 2, y: me.getRand(h)}
+                {x: startSide > 1 ? -maxLength : w + maxLength / 2, y: RandUtil.getRand(h)},
+                {x: endSide > 1 ?  -maxLength : w + maxLength / 2, y: RandUtil.getRand(h)}
             ];
         } else {
             return [
-                {x: me.getRand(w), y: startSide < 1 ? -me.maxLength : h + me.maxLength / 2},
-                {x: me.getRand(w), y: endSide < 1 ?  -me.maxLength : h + me.maxLength / 2}
+                {x: RandUtil.getRand(w), y: startSide < 1 ? -maxLength : h + maxLength / 2},
+                {x: RandUtil.getRand(w), y: endSide < 1 ?  -maxLength : h + maxLength / 2}
             ];
         }
     },
-    
+
     getTimeout: function () {
         var me = this,
             timingType = me.timing && me.timing.type,
             atTimeStr, atTime, timeTil;
 
         switch (timingType) {
-            case "every":
+            case 'every':
                 return me.timing.data * me.MINUTE;
-            case "at":
+            case 'at':
                 atTimeStr = me.timing.data.split(':');
                 atTime = new Date();
                 atTime.setHours(atTimeStr[0]);
@@ -204,46 +245,22 @@ FBH.prototype = {
                 }
                 return timeTil;
         }
-        return (me.getRand(4) + 1) * 10 * me.MINUTE
+        return (RandUtil.getRand(4) + 1) * 10 * me.MINUTE;
     },
 
-    /**
-     * Returns a random integer from 0 to options-1
-     * @param {Integer} options How many options to pick from (e.g. 4 would return 0, 1, 2, or 3)
-     **/
-    getRand: function (options) {
-        return Math.floor(Math.random() * options);
-    },
-
-    /**
-     * Returns random bool.
-     * @param {Integer} [chance] The percentage chance the result will be true. Defaults to 50.
-     **/
-    getRandBool: function (chance) {
-        if (!chance && chance !== 0) {
-            chance = 50;
-        }
-        return this.getRand(101) <= chance;
-    },
-    
-    onBabyHeadClick: function (event) {
+    onBabyHeadClick: function (floatingImage, data) {
         var me = this,
-            babyHeadImg = $("#floating-baby-head"),
-            pos = me.calculateStartAndEndPositions();
-        
-        me.highScoreDisplay.show(++me.hitCount, me.hitHighScore);
-        event.preventDefault();
-        babyHeadImg.css('-webkit-filter', me.getWebkitFilter());
-        babyHeadImg.stop(true);
-        babyHeadImg.animate({
-            left: pos[1].x,
-            top: pos[1].y
-        }, me.ANIMATION_DURATION / 2, me.onAnimationComplete.bind(me));
+            pos = me.calculateStartAndEndPositions(floatingImage.maxLength);
+
+        me.highScoreDisplay.show(floatingImage.hitCount, me.hitHighScore);
+        data.event.preventDefault();
+        floatingImage.applyCss('-webkit-filter', me.getWebkitFilter());
+        floatingImage.animate(pos[1], me.ANIMATION_DURATION / 2);
     },
-    
+
     getWebkitFilter: function () {
-        var rand = this.getRand(11 + 4);
-        switch(rand) {
+        var rand = RandUtil.getRand(11 + 4);
+        switch (rand) {
             case 0:
                 return 'sepia(1)';
             case 1:
@@ -253,7 +270,7 @@ FBH.prototype = {
             case 3:
                 return 'invert(100%)';
         }
-        //11 different hues (0-330 deg)
+        //11 different hues (30-330 deg)
         return 'hue-rotate(' + (rand - 3) * 30 + 'deg)';
     }
 };

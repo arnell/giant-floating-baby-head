@@ -1,9 +1,9 @@
 /**
- * Copyright 2015. Greg Arnell.
+ * Copyright 2016 Greg Arnell.
  **/
 
 /*jslint node: true */
-"use strict";
+'use strict';
 
 $.fn.animateRotate = function (angle, duration, easing, complete) {
     var args = $.speed(duration, easing, complete),
@@ -21,14 +21,10 @@ $.fn.animateRotate = function (angle, duration, easing, complete) {
 /**
  * Setup
  */
-chrome.storage.sync.get(
-    {
-        imageUrl: chrome.extension.getURL('img/baby_head.png'),
-        timing: null,
-        hitHighScore: 0
-    },
+ChromeStorageHelper.getItems(
 	function (items) {
-        window.fbh = new FBH(items.imageUrl, items.timing, items.hitHighScore);
+        window.fbh = new FBH(items.images, items.timing, items.hitHighScore);
         fbh.start();
-    }
+    },
+    true
 );
