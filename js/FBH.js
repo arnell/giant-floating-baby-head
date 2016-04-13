@@ -81,19 +81,19 @@ FBH.prototype = {
         if (floatingImage.imageLoaded) {
             me.onImageLoaded(floatingImage);
         } else {
-            floatingImage.init(me.onImageLoaded.bind(me));
+            floatingImage.init(me.onImageLoaded.bind(me), me.onAnimationComplete.bind(me));
         }
     },
 
-    onImageLoaded: function (floatImage) {
+    onImageLoaded: function (floatingImage) {
         var me = this,
-            pos = me.calculateStartAndEndPositions(floatImage.maxLength),
+            pos = me.calculateStartAndEndPositions(floatingImage.maxLength),
             angle = 0;
 
         if (RandUtil.getRandBool(me.ANIMATION_ROTATION_CHANCE)) {
             angle = RandUtil.getRand(180) - 90;
         }
-        floatImage.show(pos, me.ANIMATION_DURATION, angle);
+        floatingImage.show(pos, me.ANIMATION_DURATION, angle);
 
         ChromeStorageHelper.getItems(
             function (items) {
@@ -114,17 +114,23 @@ FBH.prototype = {
             return;
         }
         me.showingFavIcon = true;
-        floatingImage.init(function () {
-            me.favIcon.display(image.url);
-            setTimeout(
-                function () {
-                    me.favIcon.reset();
-                    me.showingFavIcon = false;
-                    me.setBabyHeadTimeout();
-                },
-                me.FAVICON_DURATION
-            );
-        });
+        floatingImage.init(
+            function () {
+                me.favIcon.display(image.url);
+                setTimeout(
+                    function () {
+                        me.favIcon.reset();
+                        me.showingFavIcon = false;
+                        me.setBabyHeadTimeout();
+                    },
+                    me.FAVICON_DURATION
+                );
+            },
+            function () {
+                me.showingFavIcon = false;
+                me.setBabyHeadTimeout();
+            }
+        );
     },
 
     setBabyHeadTimeout: function () {
@@ -196,7 +202,7 @@ FBH.prototype = {
     },
 
     activeImageExists: function () {
-        return !!Object.keys(this.activeImages).length;
+        return !!Object.keys(this.activeImages).length || this.showingFavIcon;
     },
 
     calculateStartAndEndPositions: function (maxLength) {
