@@ -43,13 +43,13 @@ FloatingImage.prototype = {
     hitCount: 0,
     observers: null,
 
-    init: function (callback) {
+    init: function (successCallback, failureCallback) {
         var me = this,
             configRef = this.configRef,
             image;
 
         if (me.imageLoading || me.imageLoaded) {
-            callback(me);
+            successCallback(me);
             return;
         }
         image = new Image();
@@ -59,8 +59,12 @@ FloatingImage.prototype = {
             configRef.height = me.height = this.height;
             configRef.imageLoaded = me.imageLoaded = true;
             me.imageLoading = false;
-            callback(me);
+            successCallback(me);
         };
+        image.onerror = function() {
+            me.imageLoading = false;
+            failureCallback(me);
+        }
         image.src = me.url;
     },
 
