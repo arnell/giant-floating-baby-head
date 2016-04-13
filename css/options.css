@@ -1,3 +1,7 @@
+/**
+ * Copyright 2016 Greg Arnell.
+ **/
+
 body {
     font-size: 15px;
 }
@@ -6,9 +10,6 @@ body {
     color: green;
     float: left;
     padding-top: 4px;
-}
-
-#status {
     margin-left: 5px;
 }
 
