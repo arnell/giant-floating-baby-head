@@ -17,14 +17,14 @@ body {
     color: red;
 }
 
-.imageUrl  {
-    display: block;
+.imageUrlField  {
     width: 500px;
     margin-top: 2px;
+    border-style: solid;
 }
 
-.addImageUrlButtonCell {
-    vertical-align: bottom;
+.imageStatus {
+    margin-left: 2px;
 }
 
 #addImageUrl {
