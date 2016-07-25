@@ -2,12 +2,12 @@
     "name": "Giant Floating Baby Head",
 	"short_name": "GFBH",
     "description": "Enjoy a random Giant Floating Baby Head",
-    "version": "0.8",
+    "version": "0.9",
     "content_scripts": [{
         "matches": ["http://*/*", "https://*/*"],
         "css": ["css/css.css"],
         "js": [
-            "lib/jquery-2.1.1.min.js",
+            "lib/jquery-3.1.0-custom.min.js",
             "js/ChromeStorageHelper.js",
             "js/RandUtil.js",
             "js/FloatingImage.js",
