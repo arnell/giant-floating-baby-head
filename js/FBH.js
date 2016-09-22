@@ -44,20 +44,20 @@ FBH.prototype = {
 
         $(document.body).keypress(function (event) {
             if (event.ctrlKey && event.shiftKey && event.which === 6) {
-                me.showBabyHead();
+                me.triggerBabyHead();
             }
         });
         me.setBabyHeadTimeout();
     },
 
-    showBabyHead: function () {
+    triggerBabyHead: function () {
         var me = this;
 
         clearTimeout(me.nextAppearanceTimeoutId);
         me.nextAppearanceTimeoutId = null;
 
         // Only allow one image at a time
-        if (me.activeImageExists()) {
+        if (me.activeImageExists() || !ChromeStorageHelper.isExtensionEnabled()) {
             return false;
         }
 
@@ -142,7 +142,7 @@ FBH.prototype = {
         me.nextAppearanceTimeoutId = setTimeout(
             function () {
                 me.nextAppearanceTimeoutId = null;
-                me.showBabyHead();
+                me.triggerBabyHead();
             },
             me.getTimeout()
         );
