@@ -35,3 +35,18 @@ ChromeStorageHelper.setItems = function (data, callback) {
     chrome.storage.sync.remove('imageUrl');
     chrome.storage.sync.set(data, callback);
 };
+
+/**
+ * Simple check to verify if the extension is enabled.
+ * Performs a chrome.storage.local.get that will throw an exception if the extension is
+ * disabled or uninstalled.
+ * @returns {boolean} true if the extension is enabled, false otherwise
+ */
+ChromeStorageHelper.isExtensionEnabled = function () {
+    try {
+        chrome.storage.local.get({}, function (){});
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
