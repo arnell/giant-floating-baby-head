@@ -42,8 +42,8 @@ FBH.prototype = {
     start: function () {
         var me = this;
 
-        $(document.body).keypress(function (event) {
-            if (event.ctrlKey && event.shiftKey && event.which === 6) {
+        chrome.runtime.onMessage.addListener(function (request) {
+            if ("show-baby-head" === request) {
                 me.triggerBabyHead();
             }
         });
