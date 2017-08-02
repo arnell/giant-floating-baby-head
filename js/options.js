@@ -17,6 +17,9 @@ function FBHOptions() {
     $('#addImageUrl').click(function () {
         me.addImageUrlField();
     });
+    $('#resetHighScore').click(function () {
+        me.resetHighScore();
+    });
 }
 
 FBHOptions.prototype = {
@@ -153,6 +156,20 @@ FBHOptions.prototype = {
         if (!value) {
             imageUrlField.focus();
         }
+    },
+
+    /**
+     * "Reset High Score" button handler
+     */
+    resetHighScore: function () {
+        ChromeStorageHelper.getItems(function(items) {
+            var confirmed = confirm("Press OK to reset your high score.\nCurrent score: " + items.hitHighScore);
+            if (confirmed) {
+                ChromeStorageHelper.setItems({
+                    hitHighScore: 0
+                });
+            }
+        });
     }
 };
 
