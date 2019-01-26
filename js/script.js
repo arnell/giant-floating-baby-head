@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Greg Arnell.
+ * Copyright 2019 Greg Arnell.
  **/
 
 /*jslint node: true */
@@ -23,7 +23,7 @@ $.fn.animateRotate = function (angle, duration, easing, complete) {
  */
 ChromeStorageHelper.getItems(
 	function (items) {
-        window.fbh = new FBH(items.images, items.timing, items.hitHighScore);
+        window.fbh = new FBH(items.images, items.timing, items.hitHighScore, items.disabledDomains);
         fbh.start();
     },
     true
