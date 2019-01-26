@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Greg Arnell.
+ * Copyright 2019 Greg Arnell.
  **/
 
 /*jslint node: true */
@@ -9,16 +9,18 @@
  * FBH Class Definition
  * @param {Object[]} images image configs of images to display
  * @param {Object} timing
- * @param {[[Type]]} timing.type
- * @param {[[Type]]} timing.data
+ * @param {String} timing.type
+ * @param {Object} timing.data
  * @param {Number} hitHighScore
+ * @param {String[]} disabledDomains
  */
-function FBH(images, timing, hitHighScore) {
+function FBH(images, timing, hitHighScore, disabledDomains) {
     var me = this;
 
     me.images = images;
     me.timing = timing;
     me.hitHighScore = hitHighScore;
+    me.disabledDomains = disabledDomains;
     me.highScoreDisplay = new HighScoreDisplay();
     me.favIcon = new FavIcon();
 }
@@ -56,9 +58,9 @@ FBH.prototype = {
         clearTimeout(me.nextAppearanceTimeoutId);
         me.nextAppearanceTimeoutId = null;
 
-        // Only allow one image at a time
-        if (me.activeImageExists() || !ChromeStorageHelper.isExtensionEnabled()) {
-            return false;
+        // Don't show under these circumstances
+        if (me.activeImageExists() || !ChromeStorageHelper.isExtensionEnabled() || me.domainDisabled()) {
+            return;
         }
 
         if (me.favIcon.isEnabled() && RandUtil.getRandBool(me.FAVICON_SWAP_CHANCE)) {
@@ -72,9 +74,7 @@ FBH.prototype = {
         var me = this,
             imageIndex = RandUtil.getRand(me.images.length),
             image = me.images[imageIndex],
-            floatingImage = new FloatingImage(image),
-            pos = me.calculateStartAndEndPositions(floatingImage.maxLength),
-            angle = 0;
+            floatingImage = new FloatingImage(image);
 
         floatingImage.addObserver(me);
         me.addActiveImage(floatingImage);
@@ -203,6 +203,17 @@ FBH.prototype = {
 
     activeImageExists: function () {
         return !!Object.keys(this.activeImages).length || this.showingFavIcon;
+    },
+
+    /**
+     * Matches full domain against disabled domains setting.  Subdomains are considered a match as well.
+     */
+    domainDisabled: function () {
+        return this.disabledDomains.some((value) => {
+            let index = location.hostname.indexOf(value);
+            return (index === 0 || (index > 0 && location.hostname[index-1] === '.'))
+             && location.hostname.length - value.length === index;
+        });
     },
 
     calculateStartAndEndPositions: function (maxLength) {

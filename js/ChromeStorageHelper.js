@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Greg Arnell.
+ * Copyright 2019 Greg Arnell.
  **/
 
 /*jslint node: true */
@@ -11,6 +11,7 @@ ChromeStorageHelper.getItems = function (callback, populateDefaultImage) {
     chrome.storage.sync.get(
         {
             images: [],
+            disabledDomains: [],
             timing: null,
             hitHighScore: 0,
             totalHits: 0,

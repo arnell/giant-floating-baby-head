@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Greg Arnell.
+ * Copyright 2019 Greg Arnell.
  **/
 
 body {
@@ -17,29 +17,32 @@ body {
     color: red;
 }
 
-.imageUrlField  {
+.imageUrlField, .disabledDomainField  {
     width: 500px;
-    margin-top: 2px;
+    margin-top: 3px;
     border-style: solid;
+}
+
+.addFieldButton {
+    margin-top: 5px;
 }
 
 .imageStatus {
     margin-left: 2px;
 }
 
-#addImageUrl {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: 18px;
-}
-
-#imageTips {
+.tips {
     font-size: 14px;
     margin: 0;
 }
 
+.tips pre {
+    display: inline;
+}
+
 fieldset {
     display: inline-block;
+    margin-top: 5px;
 }
 
 .info:before {
@@ -55,6 +58,7 @@ fieldset {
 
 h4 {
     margin-bottom: 0;
+    margin-top: 0;
 }
 
 h5 {

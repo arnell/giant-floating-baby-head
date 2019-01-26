@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Greg Arnell.
+ * Copyright 2019 Greg Arnell.
  **/
 
 chrome.commands.onCommand.addListener(function(command) {
