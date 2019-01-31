@@ -1,5 +1,5 @@
 <!--
-    Copyright 2016 Greg Arnell.
+    Copyright 2019 Greg Arnell.
 -->
 <!DOCTYPE html>
 <html>
@@ -16,13 +16,13 @@
         <fieldset>
             <legend><h4>Image URLs:</h4></legend>
             Want images other than the floating baby head?  Enter the URLs of the images that should float across the web browser window.
-            <ul id="imageTips">
+            <ul class="tips">
                 <li>Images with transparency are highly recommended.</li>
                 <li>Images will be displayed with their original dimensions.</li>
                 <li>Image URLs should begin with https://</li>
             </ul>
             <div id="imageUrls"></div>
-            <button id="addImageUrl">+</button>
+            <button id="addImageUrl" class="addFieldButton">+</button>
         </fieldset>
         <br>
         <fieldset>
@@ -33,8 +33,19 @@
             <br><input id="every" type="radio" name="timing" value="every"> Every <input id="everyValue" type="text" placeholder="42" size="2"> minutes
             <br><input id="at" type="radio" name="timing" value="at"> At <input id="atValue" type="text" placeholder="13:37" size="2"> (24-hour clock)
 
-            <br><em class="info">You can trigger the appearance of the Baby Head by pressing Ctrl+Shift+F on most webpages.
-            <br>The keyboard shortcut is configurable at the bottom of your Chrome extensions settings page: chrome://extensions</a></em>
+            <br><em class="info">You can trigger the appearance of the GFBH by pressing Ctrl+Shift+F on most webpages.
+            <br>The keyboard shortcut is configurable in your Chrome extensions settings: chrome://extensions/shortcuts</em>
+        </fieldset>
+        <br>
+        <fieldset>
+            <legend><h4>Disabled Domains:</h4></legend>
+            Want to disable the floating baby head from appearing on certain websites? Enter the domains where the GFBH should <em>not</em> appear.
+            <ul class="tips">
+                <li>Subdomains will also be disabled (for example, '<em>google.com</em>' would disable '<em>www.google.com</em>' and '<em>drive.google.com</em>').</li>
+                <li>The full domain will be matched (for example, '<em>drive.google.com</em>' would <em>not</em> disable '<em>google.com</em>' nor '<em>somedrive.google.com</em>').</li>
+            </ul>
+            <div id="disabledDomains"></div>
+            <button id="addDomain" class="addFieldButton">+</button>
         </fieldset>
         <br><br>
         <button id="save">Save</button><div id="status"></div>

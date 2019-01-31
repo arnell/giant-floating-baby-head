@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Greg Arnell.
+ * Copyright 2019 Greg Arnell.
  */
 
 /*jslint node: true */
@@ -17,6 +17,9 @@ function FBHOptions() {
     $('#addImageUrl').click(function () {
         me.addImageUrlField();
     });
+    $('#addDomain').click(function () {
+        me.addDisabledDomainField();
+    });
     $('#resetHighScore').click(function () {
         me.resetHighScore();
     });
@@ -24,6 +27,7 @@ function FBHOptions() {
 
 FBHOptions.prototype = {
     imageUrlFields: [],
+    disabledDomainFields: [],
 
     /**
      * Update status to let user know if options were saved.
@@ -51,14 +55,21 @@ FBHOptions.prototype = {
     saveOptions: function () {
         var me = this,
             images = [],
+            disabledDomains = [],
             timingType = $('input[name="timing"]:checked').val(),
             timingData, imageUrl, lowercaseUrl;
 
-        for (var i = 0; i < me.imageUrlFields.length; i++) {
+        for (let i = 0; i < me.imageUrlFields.length; i++) {
             imageUrl = me.imageUrlFields[i].getValue();
             lowercaseUrl = imageUrl.toLowerCase();
             if (imageUrl && (!lowercaseUrl.indexOf('https://') || !lowercaseUrl.indexOf('http://'))) {
                 images.push({url:imageUrl});
+            }
+        }
+        for (let i = 0; i < me.disabledDomainFields.length; i++) {
+            let domain = me.disabledDomainFields[i].getValue();
+            if (domain) {
+                disabledDomains.push(domain);
             }
         }
 
@@ -82,6 +93,7 @@ FBHOptions.prototype = {
         ChromeStorageHelper.setItems(
             {
                 images: images,
+                disabledDomains: disabledDomains,
                 timing: {
                     type: timingType,
                     data: timingData
@@ -123,16 +135,28 @@ FBHOptions.prototype = {
 
         ChromeStorageHelper.getItems(
             function (items) {
-                for (var i = 0; i < me.imageUrlFields.length; i++) {
+                for (let i = 0; i < me.imageUrlFields.length; i++) {
                     me.imageUrlFields[i].destroy();
                 }
                 me.imageUrlFields = [];
+                for (let i = 0; i < me.disabledDomainFields.length; i++) {
+                    me.disabledDomainFields[i].destroy();
+                }
+                me.disabledDomainFields = [];
+
                 if (items.images.length) {
-                    for (var i = 0; i < items.images.length; i++) {
+                    for (let i = 0; i < items.images.length; i++) {
                         me.addImageUrlField(items.images[i].url);
                     }
                 } else {
-                    me.addImageUrlField('');
+                    me.addImageUrlField();
+                }
+                if (items.disabledDomains.length) {
+                    for (let i = 0; i < items.disabledDomains.length; i++) {
+                        me.addDisabledDomainField(items.disabledDomains[i]);
+                    }
+                } else {
+                    me.addDisabledDomainField();
                 }
                 if (items.timing) {
                     $('#' + items.timing.type).prop('checked', true);
@@ -153,9 +177,18 @@ FBHOptions.prototype = {
         imageUrlField.appendTo($('#imageUrls'));
         imageUrlField.setValue(value);
         this.imageUrlFields.push(imageUrlField);
-        if (!value) {
-            imageUrlField.focus();
-        }
+    },
+
+    /**
+     * Add an additional disabled domain field
+     * @param {String} [value] The domain value to populate the field with.
+     */
+    addDisabledDomainField: function (value) {
+        var domainField = new DisabledDomainField();
+
+        domainField.appendTo($('#disabledDomains'));
+        domainField.setValue(value);
+        this.disabledDomainFields.push(domainField);
     },
 
     /**
@@ -185,7 +218,7 @@ ImageUrlField.nextId = 0;
 ImageUrlField.prototype = {
     id: null,
 
-    html: '<div id="ID" class="imageUrl"><input type="text" class="imageUrlField" placeholder="https://example.com/image.png"><span class="imageStatus"></span>',
+    html: '<div id="ID" class="imageUrl"><input type="text" class="imageUrlField" placeholder="https://example.com/image.png"><span class="imageStatus"></span></div>',
 
     changeTimeoutId: null,
 
@@ -217,7 +250,6 @@ ImageUrlField.prototype = {
      */
     onFieldChange: function () {
         var me = this,
-            el = me.el,
             field = me.field,
             url = field.val(),
             image = new Image(),
@@ -262,6 +294,117 @@ ImageUrlField.prototype = {
             field.css('border-color', color);
         } else {
             imageStatus.hide();
+            field.css('border-color', color || 'black');
+        }
+    },
+
+    /**
+     * Sets the value of the field. onFieldChange will be called after setting the value.
+     * @param {String} value The value to set for the field.
+     */
+    setValue: function (value) {
+        this.field.val(value);
+        this.onFieldChange();
+    },
+
+    /**
+     * Gets the current value from the field.
+     * @returns {String} the value
+     */
+    getValue: function () {
+        return this.field.val();
+    },
+
+    /**
+     * Focuses the field
+     */
+    focus: function () {
+        this.field.focus();
+    },
+
+    /**
+     * Removes this field from the the dom.
+     */
+    destroy: function() {
+        this.el.remove();
+    }
+};
+
+
+/**
+ * A form input field widget that encapsulates the entry and validation of a disabled domain field.
+ */
+function DisabledDomainField() {
+    this.id = 'disabledDomain-' + DisabledDomainField.nextId++;
+};
+
+DisabledDomainField.nextId = 0;
+
+DisabledDomainField.prototype = {
+    id: null,
+
+    html: '<div id="ID" class="disabledDomain"><input type="text" class="disabledDomainField" placeholder="example.com"><span class="domainStatus"></span></div>',
+
+    changeTimeoutId: null,
+
+    /**
+     * Adds this domain field to the supplied jQuery object.
+     * @param {jQuery} div The jQuery object that the field should be appended to.
+     */
+    appendTo: function (div) {
+        var me = this,
+            el, field;
+
+        div.append(me.html.replace('ID', me.id));
+        el = $('#' + me.id);
+        me.el = el;
+        field = el.children('.disabledDomainField');
+        me.field = field;
+        field.keyup(function () {
+            clearTimeout(me.changeTimeoutId);
+            me.setDomainStatus();
+            me.changeTimeoutId = setTimeout(function () {
+                me.onFieldChange();
+            }, 500);
+        });
+    },
+
+    /**
+     * Handler for the change event of the field value.
+     */
+    onFieldChange: function () {
+        var me = this,
+            field = me.field,
+            domain = field.val(),
+            domainRegex = /[a-zA-Z0-9-.]+\.[a-zA-Z0-9]+/;
+
+        if (!domain) {
+            me.setDomainStatus();
+            return;
+        }
+        
+        if (!domain.match(domainRegex)) {
+            me.setDomainStatus('red', 'This domain doesn\'t look right. It should be of the form <em>example.com</em>.');
+            return;
+        }
+    },
+
+    /**
+     * @private
+     * Sets the url field status
+     * @param {String} [color] The border color that should be applied to the field and text
+     * @param {String} [text]  The help text that should appear next to the field.
+     */
+    setDomainStatus: function (color, text) {
+        var domainStatus = this.el.children('.domainStatus'),
+            field = this.field;
+        if (text) {
+            domainStatus.css('color', color);
+            domainStatus.html(text);
+            domainStatus.show();
+            field.css('border-color', color);
+        } else {
+            domainStatus.hide();
             field.css('border-color', color || 'black');
         }
     },
