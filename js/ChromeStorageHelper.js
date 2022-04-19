@@ -24,7 +24,7 @@ ChromeStorageHelper.getItems = function (callback, populateDefaultImage) {
             if (items.imageUrl) {
                 items.images = [{url: items.imageUrl}];
             } else if (populateDefaultImage && !items.images.length) {
-                items.images = [{url: chrome.extension.getURL('img/baby_head.png')}];
+                items.images = [{url: chrome.runtime.getURL('img/baby_head.png')}];
             }
             callback.call(window, items);
         }

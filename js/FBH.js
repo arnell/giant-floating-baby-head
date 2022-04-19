@@ -44,10 +44,11 @@ FBH.prototype = {
     start: function () {
         var me = this;
 
-        chrome.runtime.onMessage.addListener(function (request) {
+        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             if ("show-baby-head" === request) {
                 me.triggerBabyHead();
             }
+            sendResponse();
         });
         me.setBabyHeadTimeout();
     },

@@ -2,7 +2,7 @@
     "name": "Giant Floating Baby Head",
 	"short_name": "GFBH",
     "description": "Enjoy a random Giant Floating Baby Head",
-    "version": "0.12",
+    "version": "0.13",
     "content_scripts": [{
         "matches": ["http://*/*", "https://*/*"],
         "css": ["css/css.css"],
@@ -17,11 +17,13 @@
             "js/script.js"
         ]
     }],
-    "background": {
-        "scripts": ["js/background.js"],
-        "persistent": false
+    "background":{
+        "service_worker": "js/background.js"
     },
-    "web_accessible_resources": ["img/baby_head.png"],
+    "web_accessible_resources": [{
+        "resources": ["img/baby_head.png"],
+        "matches": ["http://*/*", "https://*/*"]
+    }],
     "icons": {
         "16": "img/icon16.png",
         "48": "img/icon48.png",
@@ -40,5 +42,5 @@
             "description": "Show Giant Floating Baby Head"
         }
     },
-    "manifest_version": 2
+    "manifest_version": 3
 }
