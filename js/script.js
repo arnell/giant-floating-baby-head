@@ -1,13 +1,13 @@
 /**
- * Copyright 2019 Greg Arnell.
+ * Copyright 2022 Greg Arnell.
  **/
 
 /*jslint node: true */
 'use strict';
 
 $.fn.animateRotate = function (angle, duration, easing, complete) {
-    var args = $.speed(duration, easing, complete),
-        step = args.step;
+    const args = $.speed(duration, easing, complete);
+    const step = args.step;
     return this.each(function (i, e) {
         args.complete = $.proxy(args.complete, e);
         args.step = function (now) {
@@ -22,7 +22,7 @@ $.fn.animateRotate = function (angle, duration, easing, complete) {
  * Setup
  */
 ChromeStorageHelper.getItems(
-	function (items) {
+	(items) => {
         window.fbh = new FBH(items.images, items.timing, items.hitHighScore, items.disabledDomains);
         fbh.start();
     },
