@@ -1,155 +1,138 @@
 /**
- * Copyright 2019 Greg Arnell.
+ * Copyright 2022 Greg Arnell.
  **/
 
 /*jslint node: true */
 'use strict';
 
-/**
- * FBH Class Definition
- * @param {Object[]} images image configs of images to display
- * @param {Object} timing
- * @param {String} timing.type
- * @param {Object} timing.data
- * @param {Number} hitHighScore
- * @param {String[]} disabledDomains
- */
-function FBH(images, timing, hitHighScore, disabledDomains) {
-    var me = this;
+class FBH {
+    /**
+    * @param {Object[]} images image configs of images to display
+    * @param {Object} timing
+    * @param {String} timing.type
+    * @param {Object} timing.data
+    * @param {Number} hitHighScore
+    * @param {String[]} disabledDomains
+    */
+    constructor(images, timing, hitHighScore, disabledDomains) {
+        this.images = images;
+        this.timing = timing;
+        this.hitHighScore = hitHighScore;
+        this.disabledDomains = disabledDomains;
+        this.highScoreDisplay = new HighScoreDisplay();
+        this.favIcon = new FavIcon();
+        this.showingFavIcon = false;
+        this.activeImages = {};
+        this.nextAppearanceTimeoutId = null;
+    }
 
-    me.images = images;
-    me.timing = timing;
-    me.hitHighScore = hitHighScore;
-    me.disabledDomains = disabledDomains;
-    me.highScoreDisplay = new HighScoreDisplay();
-    me.favIcon = new FavIcon();
-}
+    static MINUTE = 60000;
+    static DAY = 86400000;
+    static ANIMATION_DURATION = 3000;
+    static ANIMATION_ROTATION_CHANCE = 80;
+    static FAVICON_DURATION = 4000;
+    static FAVICON_SWAP_CHANCE = 5;
 
-FBH.prototype = {
-    MINUTE: 60000,
-    DAY: 86400000,
-    ANIMATION_DURATION: 3000,
-    ANIMATION_ROTATION_CHANCE: 80,
-    FAVICON_DURATION: 4000,
-    FAVICON_SWAP_CHANCE: 5,
-
-    images: [],
-    timing: null,
-    favIcon: null,
-    showingFavIcon: false,
-    activeImages: {},
-    highScoreDisplay: null,
-    nextAppearanceTimeoutId: null,
-
-    start: function () {
-        var me = this;
-
-        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-            if ("show-baby-head" === request) {
-                me.triggerBabyHead();
+    start() {
+        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+            if ('show-baby-head' === request) {
+                this.triggerBabyHead();
             }
             sendResponse();
         });
-        me.setBabyHeadTimeout();
-    },
+        this.setBabyHeadTimeout();
+    }
 
-    triggerBabyHead: function () {
-        var me = this;
-
-        clearTimeout(me.nextAppearanceTimeoutId);
-        me.nextAppearanceTimeoutId = null;
+    triggerBabyHead() {
+        clearTimeout(this.nextAppearanceTimeoutId);
+        this.nextAppearanceTimeoutId = null;
 
         // Don't show under these circumstances
-        if (me.activeImageExists() || !ChromeStorageHelper.isExtensionEnabled() || me.domainDisabled()) {
+        if (this.activeImageExists() || !ChromeStorageHelper.isExtensionEnabled() || this.domainDisabled()) {
             return;
         }
 
-        if (me.favIcon.isEnabled() && RandUtil.getRandBool(me.FAVICON_SWAP_CHANCE)) {
-            me.showFavIconBabyHead();
+        if (this.favIcon.isEnabled() && RandUtil.getRandBool(FBH.FAVICON_SWAP_CHANCE)) {
+            this.showFavIconBabyHead();
         } else {
-            me.showFloatingBabyHead();
+            this.showFloatingBabyHead();
         }
-    },
+    }
 
-    showFloatingBabyHead: function () {
-        var me = this,
-            imageIndex = RandUtil.getRand(me.images.length),
-            image = me.images[imageIndex],
-            floatingImage = new FloatingImage(image);
+    showFloatingBabyHead() {
+        const imageIndex = RandUtil.getRand(this.images.length);
+        const image = this.images[imageIndex];
+        const floatingImage = new FloatingImage(image);
 
-        floatingImage.addObserver(me);
-        me.addActiveImage(floatingImage);
+        floatingImage.addObserver(this);
+        this.addActiveImage(floatingImage);
         if (floatingImage.imageLoaded) {
-            me.onImageLoaded(floatingImage);
+            this.onImageLoaded(floatingImage);
         } else {
-            floatingImage.init(me.onImageLoaded.bind(me), me.onAnimationComplete.bind(me));
+            floatingImage.init()
+                .then(() => this.onImageLoaded(floatingImage))
+                .catch(() => this.onAnimationComplete(floatingImage));
         }
-    },
+    }
 
-    onImageLoaded: function (floatingImage) {
-        var me = this,
-            pos = me.calculateStartAndEndPositions(floatingImage.maxLength),
-            angle = 0;
+    onImageLoaded(floatingImage) {
+        const pos = this.calculateStartAndEndPositions(floatingImage.maxLength);
+        let angle = 0;
 
-        if (RandUtil.getRandBool(me.ANIMATION_ROTATION_CHANCE)) {
+        if (RandUtil.getRandBool(FBH.ANIMATION_ROTATION_CHANCE)) {
             angle = RandUtil.getRand(180) - 90;
         }
-        floatingImage.show(pos, me.ANIMATION_DURATION, angle);
+        floatingImage.show(pos, FBH.ANIMATION_DURATION, angle);
 
         ChromeStorageHelper.getItems(
-            function (items) {
-                me.highScoreDisplay.show(0, items.hitHighScore);
-                me.hitHighScore = items.hitHighScore;
+            (items) => {
+                this.highScoreDisplay.show(0, items.hitHighScore);
+                this.hitHighScore = items.hitHighScore;
             },
             true
         );
-    },
+    }
 
-    showFavIconBabyHead: function () {
-        var me = this,
-            imageIndex = RandUtil.getRand(me.images.length),
-            image = me.images[imageIndex],
-            floatingImage = new FloatingImage(image);
+    showFavIconBabyHead() {
+        const imageIndex = RandUtil.getRand(this.images.length);
+        const image = this.images[imageIndex];
+        const floatingImage = new FloatingImage(image);
 
-        if (me.showingFavIcon) {
+        if (this.showingFavIcon) {
             return;
         }
-        me.showingFavIcon = true;
-        floatingImage.init(
-            function () {
-                me.favIcon.display(image.url);
-                setTimeout(
-                    function () {
-                        me.favIcon.reset();
-                        me.showingFavIcon = false;
-                        me.setBabyHeadTimeout();
+        this.showingFavIcon = true;
+        floatingImage.init()
+            .then(() => {
+                this.favIcon.display(image.url);
+                setTimeout(() => {
+                        this.favIcon.reset();
+                        this.showingFavIcon = false;
+                        this.setBabyHeadTimeout();
                     },
-                    me.FAVICON_DURATION
+                    FBH.FAVICON_DURATION
                 );
-            },
-            function () {
-                me.showingFavIcon = false;
-                me.setBabyHeadTimeout();
-            }
-        );
-    },
+            })
+            .catch(() => {
+                this.showingFavIcon = false;
+                this.setBabyHeadTimeout();
+            });
+    }
 
-    setBabyHeadTimeout: function () {
-        var me = this;
-
-        if (me.nextAppearanceTimeoutId) {
+    setBabyHeadTimeout() {
+        if (this.nextAppearanceTimeoutId) {
             return;
         }
-        me.nextAppearanceTimeoutId = setTimeout(
-            function () {
-                me.nextAppearanceTimeoutId = null;
-                me.triggerBabyHead();
+        this.nextAppearanceTimeoutId = setTimeout(
+            () => {
+                this.nextAppearanceTimeoutId = null;
+                this.triggerBabyHead();
             },
-            me.getTimeout()
+            this.getTimeout()
         );
-    },
+    }
 
-    notify: function (obj, event, data) {
+    notify(obj, event, data) {
         switch (event) {
             case 'complete':
                 this.onAnimationComplete(obj, data);
@@ -158,71 +141,67 @@ FBH.prototype = {
                 this.onBabyHeadClick(obj, data);
                 break;
         }
-    },
+    }
 
-    onAnimationComplete: function (floatingImage) {
-        var me = this,
-            hitCount = floatingImage.hitCount;
+    onAnimationComplete(floatingImage) {
+        const hitCount = floatingImage.hitCount;
 
-        me.removeActiveImage(floatingImage);
-        floatingImage.removeObserver(me);
-        me.highScoreDisplay.destroy();
-        if (!me.activeImageExists()) {
-            me.setBabyHeadTimeout();
+        this.removeActiveImage(floatingImage);
+        floatingImage.removeObserver(this);
+        this.highScoreDisplay.destroy();
+        if (!this.activeImageExists()) {
+            this.setBabyHeadTimeout();
         }
         if (hitCount) {
             ChromeStorageHelper.getItems(
-                function (items) {
-                    var hitHighScore = Math.max(items.hitHighScore, hitCount);
+                (items) => {
+                    const hitHighScore = Math.max(items.hitHighScore, hitCount);
                     ChromeStorageHelper.setItems({
                         totalHits: items.totalHits + hitCount,
                         hitHighScore: hitHighScore
                     });
-                    me.hitHighScore = hitHighScore;
+                    this.hitHighScore = hitHighScore;
                 },
                 true
             );
         }
-    },
+    }
 
-    addActiveImage: function (floatingImage) {
-        var me = this;
-        if (me.activeImages[floatingImage.url]) {
-            me.activeImages[floatingImage.url] += 1;
+    addActiveImage(floatingImage) {
+        if (this.activeImages[floatingImage.url]) {
+            this.activeImages[floatingImage.url] += 1;
         } else {
-            me.activeImages[floatingImage.url] = 1;
+            this.activeImages[floatingImage.url] = 1;
         }
-    },
+    }
 
-    removeActiveImage: function (floatingImage) {
-        var me = this;
-        me.activeImages[floatingImage.url] -= 1;
-        if (!me.activeImages[floatingImage.url]) {
-            delete me.activeImages[floatingImage.url];
+    removeActiveImage(floatingImage) {
+        this.activeImages[floatingImage.url] -= 1;
+        if (!this.activeImages[floatingImage.url]) {
+            delete this.activeImages[floatingImage.url];
         }
-    },
+    }
 
-    activeImageExists: function () {
+    activeImageExists() {
         return !!Object.keys(this.activeImages).length || this.showingFavIcon;
-    },
+    }
 
     /**
      * Matches full domain against disabled domains setting.  Subdomains are considered a match as well.
      */
-    domainDisabled: function () {
+    domainDisabled() {
         return this.disabledDomains.some((value) => {
             let index = location.hostname.indexOf(value);
             return (index === 0 || (index > 0 && location.hostname[index-1] === '.'))
              && location.hostname.length - value.length === index;
         });
-    },
+    }
 
-    calculateStartAndEndPositions: function (maxLength) {
-        var me = this,
-            w = window.innerWidth,
-            h = window.innerHeight,
-            startSide = RandUtil.getRand(4), //0: top, 1: right, 2: bottom, 3: left
-            endSide = (startSide + 2) % 4;
+    calculateStartAndEndPositions(maxLength) {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const startSide = RandUtil.getRand(4); //0: top, 1: right, 2: bottom, 3: left
+        const endSide = (startSide + 2) % 4;
 
         if (startSide % 2) {
             return [
@@ -235,43 +214,38 @@ FBH.prototype = {
                 {x: RandUtil.getRand(w), y: endSide < 1 ?  -maxLength : h + maxLength / 2}
             ];
         }
-    },
+    }
 
-    getTimeout: function () {
-        var me = this,
-            timingType = me.timing && me.timing.type,
-            atTimeStr, atTime, timeTil;
-
+    getTimeout() {
+        const timingType = this.timing && this.timing.type;
         switch (timingType) {
             case 'every':
-                return me.timing.data * me.MINUTE;
+                return this.timing.data * FBH.MINUTE;
             case 'at':
-                atTimeStr = me.timing.data.split(':');
-                atTime = new Date();
+                const atTimeStr = this.timing.data.split(':');
+                const atTime = new Date();
                 atTime.setHours(atTimeStr[0]);
                 atTime.setMinutes(atTimeStr[1]);
                 atTime.setSeconds(0);
-                timeTil = atTime - new Date();
+                const timeTil = atTime - new Date();
                 if (timeTil < 0) {
-                    timeTil += me.DAY;
+                    timeTil += FBH.DAY;
                 }
                 return timeTil;
         }
-        return (RandUtil.getRand(4) + 1) * 10 * me.MINUTE;
-    },
+        return (RandUtil.getRand(4) + 1) * 10 * FBH.MINUTE;
+    }
 
-    onBabyHeadClick: function (floatingImage, data) {
-        var me = this,
-            pos = me.calculateStartAndEndPositions(floatingImage.maxLength);
-
-        me.highScoreDisplay.show(floatingImage.hitCount, me.hitHighScore);
+    onBabyHeadClick(floatingImage, data) {
+        const [, end] = this.calculateStartAndEndPositions(floatingImage.maxLength);
+        this.highScoreDisplay.show(floatingImage.hitCount, this.hitHighScore);
         data.event.preventDefault();
-        floatingImage.applyCss('-webkit-filter', me.getWebkitFilter());
-        floatingImage.animate(pos[1], me.ANIMATION_DURATION / 2);
-    },
+        floatingImage.applyCss('-webkit-filter', this.getWebkitFilter());
+        floatingImage.animate(end, FBH.ANIMATION_DURATION / 2);
+    }
 
-    getWebkitFilter: function () {
-        var rand = RandUtil.getRand(11 + 4);
+    getWebkitFilter() {
+        const rand = RandUtil.getRand(4 + 11);
         switch (rand) {
             case 0:
                 return 'sepia(1)';
@@ -285,4 +259,4 @@ FBH.prototype = {
         //11 different hues (30-330 deg)
         return 'hue-rotate(' + (rand - 3) * 30 + 'deg)';
     }
-};
+}

@@ -1,9 +1,12 @@
 /**
- * Copyright 2019 Greg Arnell.
+ * Copyright 2022 Greg Arnell.
  **/
 
-chrome.commands.onCommand.addListener(function(command) {
-    chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
-        chrome.tabs.sendMessage(tabs[0].id, "show-baby-head");
+/**
+ * Set up the command listener (there's only one command).
+ */
+chrome.commands.onCommand.addListener((command)  => {
+    chrome.tabs.query({currentWindow: true, active: true}, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, 'show-baby-head');
     });
 });

@@ -1,139 +1,127 @@
 /**
- * Copyright 2019 Greg Arnell.
+ * Copyright 2022 Greg Arnell.
  **/
 
 /*jslint node: true */
 'use strict';
 
-/**
- * @param config The configuration for the floating image. a reference to
- * the configuration object is maintained and the following properties are
- * update on the object when necessary: imageLoaded, height, maxLength
- * @param config.url url of the image that should be loaded
- * @param [config.imageLoaded] whether the image has been loaded and therefore
- * all info about the image is known
- * @param [config.height] height of the image
- * @param [config.maxLength] Max value of height or width of the image
- */
-function FloatingImage(config) {
-    this.configRef = config;
-    this.url = config.url;
-    this.maxLength = config.maxLength || null;
-    this.height = config.height || null;
-    this.imageLoaded = config.imageLoaded || false;
-    this.id = FloatingImage.nextId++;
 
-    // observers array must be initialized here instead of in prototype or
-    // else all instances reference the same array.
-    this.observers = [];
-}
+class FloatingImage {
 
-FloatingImage.nextId = 0;
+    /**
+     * @param config The configuration for the floating image. a reference to
+     * the configuration object is maintained and the following properties are
+     * update on the object when necessary: imageLoaded, height, maxLength
+     * @param config.url url of the image that should be loaded
+     * @param [config.imageLoaded] whether the image has been loaded and therefore
+     * all info about the image is known
+     * @param [config.height] height of the image
+     * @param [config.maxLength] Max value of height or width of the image
+     */
+    constructor(config) {
+        this.configRef = config;
+        this.url = config.url;
+        this.maxLength = config.maxLength || null;
+        this.height = config.height || null;
+        this.imageLoaded = config.imageLoaded || false;
+        this.imageLoading = false;
+        this.id = FloatingImage.#nextId++;
+        this.observers = [];
+        this.dom = null;
+        this.animating = false;
+        this.hitCount = 0;
+    }
 
-FloatingImage.prototype = {
-    configRef: null,
-    url: null,
-    id: null,
-    maxLength: null,
-    height: 0,
-    imageLoaded: false,
-    imageLoading: false,
-    dom: null,
-    animating: false,
-    hitCount: 0,
-    observers: null,
+    static #nextId = 0;
 
-    init: function (successCallback, failureCallback) {
-        var me = this,
-            configRef = this.configRef,
-            image;
+    init() {
+        const configRef = this.configRef;
 
-        if (me.imageLoading || me.imageLoaded) {
-            successCallback(me);
-            return;
-        }
-        image = new Image();
-        me.imageLoading = true;
-        image.onload = function () {
-            configRef.maxLength = me.maxLength = Math.max(this.width, this.height);
-            configRef.height = me.height = this.height;
-            configRef.imageLoaded = me.imageLoaded = true;
-            me.imageLoading = false;
-            successCallback(me);
-        };
-        image.onerror = function() {
-            me.imageLoading = false;
-            failureCallback(me);
-        }
-        image.src = me.url;
-    },
+        return new Promise((resolve, reject) => {
+            if (this.imageLoading || this.imageLoaded) {
+                resolve();
+                return;
+            }
+            const image = new Image();
+            this.imageLoading = true;
+            image.onload = () => {
+                configRef.maxLength = this.maxLength = Math.max(image.width, image.height);
+                configRef.height = this.height = image.height;
+                configRef.imageLoaded = this.imageLoaded = true;
+                this.imageLoading = false;
+                resolve();
+            };
+            image.onerror = () => {
+                this.imageLoading = false;
+                reject();
+            }
+            image.src = this.url;
+        });
+    }
 
-    show: function (pos, animationDuration, angle) {
-        var me = this;
-
-        me.hitCount = 0;
-        me.animating = true;
-        $('<img id="floating-baby-head' + me.id + '" class="floating-baby-head" height="' + me.height + '" src="' + me.url + '"/>').appendTo('body');
-        me.dom = $('#floating-baby-head' + me.id);
-        me.dom.mousedown(me.onClick.bind(me));
-        me.dom.css({
+    show(pos, animationDuration, angle) {
+        this.hitCount = 0;
+        this.animating = true;
+        $('<img id="floating-baby-head' + this.id + '" class="floating-baby-head" height="' + this.height + '" src="' + this.url + '"/>').appendTo('body');
+        this.dom = $('#floating-baby-head' + this.id);
+        this.dom.mousedown((event) => this.onClick(event));
+        this.dom.css({
             left: pos[0].x,
             top: pos[0].y
         });
-        me.dom.animate({
+        this.dom.animate({
             left: pos[1].x,
             top: pos[1].y
-        }, animationDuration, me.onAnimationComplete.bind(me));
+        }, animationDuration, () => this.onAnimationComplete());
         if (angle) {
-            me.dom.animateRotate(angle, {
+            this.dom.animateRotate(angle, {
                 duration: animationDuration,
                 easing: RandUtil.getRandBool() ? 'linear' : 'swing'
             });
         }
-    },
+    }
 
-    onClick: function (event) {
+    onClick(event) {
         this.hitCount++;
         this.notifyObservers('click', {hitCount: this.hitCount, event: event});
-    },
+    }
 
-    onAnimationComplete: function () {
+    onAnimationComplete() {
         $('#floating-baby-head' + this.id).remove();
         this.animating = false;
         this.notifyObservers('complete');
-    },
+    }
 
-    applyCss: function (property, value) {
+    applyCss(property, value) {
         this.dom.css(property, value);
-    },
+    }
 
-    stop: function () {
+    stop() {
         this.dom.stop(true);
-    },
+    }
 
-    animate: function (pos, duration) {
+    animate(pos, duration) {
         this.dom.stop(true);
         this.dom.animate({
             left: pos.x,
             top: pos.y
-        }, duration, this.onAnimationComplete.bind(this));
-    },
+        }, duration, () => this.onAnimationComplete());
+    }
 
-    addObserver: function (observer) {
+    addObserver(observer) {
         this.observers.push(observer);
-    },
+    }
 
-    removeObserver: function (observer) {
-        var idx = this.observers.indexOf(observer);
+    removeObserver(observer) {
+        const idx = this.observers.indexOf(observer);
         this.observers.splice(idx, 1);
-    },
+    }
 
-    notifyObservers: function (event, data) {
-        var me = this,
-            args = Array.prototype.slice.call(arguments);
-        args.splice(0, 0, me);
-        for (var i = 0; i < me.observers.length; i++) {
-            me.observers[i].notify.apply(me.observers[i], args);
+    notifyObservers(event, data) {
+        const args = Array.prototype.slice.call(arguments);
+        args.splice(0, 0, this);
+        for (let i = 0; i < this.observers.length; i++) {
+            this.observers[i].notify.apply(this.observers[i], args);
         }
     }
-};
+}

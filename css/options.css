@@ -1,23 +1,23 @@
 /**
- * Copyright 2019 Greg Arnell.
+ * Copyright 2022 Greg Arnell.
  **/
 
 body {
     font-size: 15px;
 }
 
-#status {
+#saveStatus {
     color: green;
     float: left;
     padding-top: 4px;
     margin-left: 5px;
 }
 
-#status.error {
+#saveStatus.error {
     color: red;
 }
 
-.imageUrlField, .disabledDomainField  {
+.validatedFieldInput  {
     width: 500px;
     margin-top: 3px;
     border-style: solid;
@@ -27,7 +27,7 @@ body {
     margin-top: 5px;
 }
 
-.imageStatus {
+.validatedField .status {
     margin-left: 2px;
 }
 
@@ -43,6 +43,10 @@ body {
 fieldset {
     display: inline-block;
     margin-top: 5px;
+}
+
+fieldset legend {
+    font-weight: bold;
 }
 
 .info:before {

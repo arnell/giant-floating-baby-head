@@ -1,5 +1,5 @@
 <!--
-    Copyright 2019 Greg Arnell.
+    Copyright 2022 Greg Arnell.
 -->
 <!DOCTYPE html>
 <html>
@@ -7,14 +7,18 @@
         <title>Giant Floating Baby Head (GFBH) Extension Options</title>
         <script src="../lib/jquery-3.1.0-custom.min.js"></script>
         <script src="../js/ChromeStorageHelper.js"></script>
-        <script src="../js/options.js"></script>
+        <script src="../js/options/ValidatedField.js"></script>
+        <script src="../js/options/ImageUrlField.js"></script>
+        <script src="../js/options/DisabledDomainField.js"></script>
+        <script src="../js/options/FBHOptions.js"></script>
+        <script src="../js/options/options.js"></script>
         <link type="text/css" rel="stylesheet" href="../css/options.css">
     </head>
     <body>
     <h2>Giant Floating Baby Head (GFBH) Extension Options</h2>
-        <h5>Configure GFBH to function the way you want.</h5>
+        <h3>Configure GFBH to function the way you want.</h3>
         <fieldset>
-            <legend><h4>Image URLs:</h4></legend>
+            <legend>Image URLs:</legend>
             Want images other than the floating baby head?  Enter the URLs of the images that should float across the web browser window.
             <ul class="tips">
                 <li>Images with transparency are highly recommended.</li>
@@ -26,7 +30,7 @@
         </fieldset>
         <br>
         <fieldset>
-            <legend><h4>Timing:</h4></legend>
+            <legend>Timing:</legend>
 
             When do you want the floating baby head to appear?
             <br><input id="random" type="radio" name="timing" value="random" checked> Random
@@ -38,7 +42,7 @@
         </fieldset>
         <br>
         <fieldset>
-            <legend><h4>Disabled Domains:</h4></legend>
+            <legend>Disabled Domains:</legend>
             Want to disable the floating baby head from appearing on certain websites? Enter the domains where the GFBH should <em>not</em> appear.
             <ul class="tips">
                 <li>Subdomains will also be disabled (for example, '<em>google.com</em>' would disable '<em>www.google.com</em>' and '<em>drive.google.com</em>').</li>
@@ -48,14 +52,13 @@
             <button id="addDomain" class="addFieldButton">+</button>
         </fieldset>
         <br><br>
-        <button id="save">Save</button><div id="status"></div>
+        <button id="save">Save</button><div id="saveStatus"></div>
 
         <br><br>Did you know you can click on the floating baby head?
         <br><button id="resetHighScore">Reset High Score</button>
 
         <br><br>Am I missing a setting you'd like to configure? Did you find a bug? Do you want to help by translating this page?
-        <li>Let me know at <a href="https://github.com/homelessbread/giant-floating-baby-head/issues" target="_blank">https://github.com/homelessbread/giant-floating-baby-head/issues</a> or greg.arnell@gmail.com!</li>
+        <ul><li>Let me know at <a href="https://github.com/arnell/giant-floating-baby-head/issues" target="_blank">https://github.com/arnell/giant-floating-baby-head/issues</a> or greg.arnell@gmail.com!</li></ul>
         <br>Don't forget to <a href="https://chrome.google.com/webstore/detail/dikflngfkaandpfjpaonobhjjpdbacni" target="_blank">rate the extension</a>!
-
     </body>
 </html>
