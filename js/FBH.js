@@ -1,6 +1,4 @@
-/**
- * Copyright 2022 Greg Arnell.
- **/
+// Copyright 2022 Greg Arnell.
 
 /*jslint node: true */
 'use strict';
