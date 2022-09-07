@@ -22,6 +22,7 @@ class FBH {
         this.showingFavIcon = false;
         this.activeImages = {};
         this.nextAppearanceTimeoutId = null;
+        this.nextAppearanceTime = null;
     }
 
     static MINUTE = 60000;
@@ -44,9 +45,16 @@ class FBH {
     triggerBabyHead() {
         clearTimeout(this.nextAppearanceTimeoutId);
         this.nextAppearanceTimeoutId = null;
+        const expectedAppearanceTime = this.nextAppearanceTime;
+        this.nextAppearanceTime = null
 
         // Don't show under these circumstances
         if (this.activeImageExists() || !ChromeStorageHelper.isExtensionEnabled() || this.domainDisabled()) {
+            return;
+        }
+        if (this.isTimeoutExpired(expectedAppearanceTime)) {
+            // Don't show but do reset the timeout
+            this.setBabyHeadTimeout();
             return;
         }
 
@@ -121,13 +129,14 @@ class FBH {
         if (this.nextAppearanceTimeoutId) {
             return;
         }
+        const timeout = this.getTimeout();
         this.nextAppearanceTimeoutId = setTimeout(
             () => {
-                this.nextAppearanceTimeoutId = null;
                 this.triggerBabyHead();
             },
-            this.getTimeout()
+            timeout
         );
+        this.nextAppearanceTime = new Date().getTime() + timeout;
     }
 
     notify(obj, event, data) {
@@ -256,5 +265,12 @@ class FBH {
         }
         //11 different hues (30-330 deg)
         return 'hue-rotate(' + (rand - 3) * 30 + 'deg)';
+    }
+
+    isTimeoutExpired(expectedAppearanceTime) {
+        if (!expectedAppearanceTime) {
+            return false;
+        }
+        return new Date().getTime() - expectedAppearanceTime > FBH.MINUTE;
     }
 }
