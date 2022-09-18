@@ -86,18 +86,22 @@
                     type: timingType,
                     data: timingData
                 }
-            },
-            () => {
+            })
+            .then(() => {
                 this.showStatus();
                 this.restoreOptions();
-            }
-        );
+                chrome.tabs.query({}, function (tabs) {
+                    for (var i = 0; i < tabs.length; ++i) {
+                        chrome.tabs.sendMessage(tabs[i].id, 'options-updated');
+                    }
+                });
+            });
     }
 
     /**
      * Check if the passed time string is a valid 24 hour time.
      * @param   {String} time String of the format '13:37'
-     * @returns {true}   if the string is a valid time.
+     * @returns {boolean} true, if the string is a valid time.
      */
     validateTime(time) {
         if (typeof time !== 'string') {
@@ -117,8 +121,8 @@
      * Restore select box and checkbox state using the preferences stored in chrome.storage.
      */
     restoreOptions() {
-        ChromeStorageHelper.getItems(
-            (items) => {
+        ChromeStorageHelper.getItems({populateDefaultImage: false})
+            .then((items) => {
                 for (let i = 0; i < this.imageUrlFields.length; i++) {
                     this.imageUrlFields[i].destroy();
                 }
@@ -146,9 +150,7 @@
                     $('#' + items.timing.type).prop('checked', true);
                     $('#' + items.timing.type + 'Value').val(items.timing.data);
                 }
-            },
-            false
-        );
+            });
     }
 
     /**
@@ -177,13 +179,14 @@
      * 'Reset High Score' button handler
      */
     resetHighScore() {
-        ChromeStorageHelper.getItems((items) => {
-            const confirmed = confirm('Press OK to reset your high score.\nCurrent score: ' + items.hitHighScore);
-            if (confirmed) {
-                ChromeStorageHelper.setItems({
-                    hitHighScore: 0
-                });
-            }
-        });
+        ChromeStorageHelper.getItems()
+            .then((items) => {
+                const confirmed = confirm('Press OK to reset your high score.\nCurrent score: ' + items.hitHighScore);
+                if (confirmed) {
+                    ChromeStorageHelper.setItems({
+                        hitHighScore: 0
+                    });
+                }
+            });
     }
 };

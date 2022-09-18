@@ -5,34 +5,47 @@
 
 class ChromeStorageHelper {
 
-    static getItems(callback, populateDefaultImage) {
-        chrome.storage.sync.get(
-            {
-                images: [],
-                disabledDomains: [],
-                timing: null,
-                hitHighScore: 0,
-                totalHits: 0,
-                // backwards compatibility:
-                imageUrl: null
-            },
-            (items) => {
-                // In order to be backwards compatible, if the deprecated 'imageUrl' is still defined,
-                // then set the images to a new array with the imageUrl as the only element.
-                if (items.imageUrl) {
-                    items.images = [{url: items.imageUrl}];
-                } else if (populateDefaultImage && !items.images.length) {
-                    items.images = [{url: chrome.runtime.getURL('img/baby_head.png')}];
+    /**
+     * Get the Chrome storage items.
+     * @param {Object} options
+     * @param {Object} options.populateDefaultImage true if the default image should be populated
+     * @returns {Promise} promise with the Chrome storage items
+     */
+    static getItems(options = {populateDefaultImage: true}) {
+        return new Promise((resolve) => {
+            chrome.storage.sync.get(
+                {
+                    images: [],
+                    disabledDomains: [],
+                    timing: null,
+                    hitHighScore: 0,
+                    totalHits: 0,
+                    // backwards compatibility:
+                    imageUrl: null
+                },
+                (items) => {
+                    // In order to be backwards compatible, if the deprecated 'imageUrl' is still defined,
+                    // then set the images to a new array with the imageUrl as the only element.
+                    if (items.imageUrl) {
+                        items.images = [{url: items.imageUrl}];
+                    } else if (options.populateDefaultImage && !items.images.length) {
+                        items.images = [{url: chrome.runtime.getURL('img/baby_head.png')}];
+                    }
+                    resolve(items);
                 }
-                callback.call(window, items);
-            }
-        );
+            );
+        });
     };
 
-    //TODO: reduce the number of syncs because apparently there's a max: https://developer.chrome.com/extensions/storage#property-sync
-    static setItems(data, callback) {
+    /**
+     * Save items in Chrome storage.
+     * TODO: reduce the number of syncs because apparently there's a max: https://developer.chrome.com/extensions/storage#property-sync
+     * @param {Object} items data to store
+     * @returns {Promise} promise that will resolve when items are saved
+     */
+    static setItems(items) {
         chrome.storage.sync.remove('imageUrl');
-        chrome.storage.sync.set(data, callback);
+        return chrome.storage.sync.set(items);
     };
 
     /**
