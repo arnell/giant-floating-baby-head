@@ -19,10 +19,8 @@ $.fn.animateRotate = function (angle, duration, easing, complete) {
 /**
  * Setup
  */
-ChromeStorageHelper.getItems(
-	(items) => {
+ChromeStorageHelper.getItems()
+    .then((items) => {
         window.fbh = new FBH(items.images, items.timing, items.hitHighScore, items.disabledDomains);
         fbh.start();
-    },
-    true
-);
+    });

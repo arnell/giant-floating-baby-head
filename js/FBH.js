@@ -34,8 +34,13 @@ class FBH {
 
     start() {
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            if ('show-baby-head' === request) {
-                this.triggerBabyHead();
+            switch(request) {
+                case 'show-baby-head':
+                    this.triggerBabyHead();
+                    break;
+                case 'options-updated':
+                    this.reloadOptions();
+                    break;
             }
             sendResponse();
         });
@@ -43,16 +48,11 @@ class FBH {
     }
 
     triggerBabyHead() {
-        clearTimeout(this.nextAppearanceTimeoutId);
-        this.nextAppearanceTimeoutId = null;
-        const expectedAppearanceTime = this.nextAppearanceTime;
-        this.nextAppearanceTime = null
-
         // Don't show under these circumstances
         if (this.activeImageExists() || !ChromeStorageHelper.isExtensionEnabled() || this.domainDisabled()) {
             return;
         }
-        if (this.isTimeoutExpired(expectedAppearanceTime)) {
+        if (this.isTimeoutExpired(this.nextAppearanceTime)) {
             // Don't show but do reset the timeout
             this.setBabyHeadTimeout();
             return;
@@ -90,13 +90,11 @@ class FBH {
         }
         floatingImage.show(pos, FBH.ANIMATION_DURATION, angle);
 
-        ChromeStorageHelper.getItems(
-            (items) => {
+        ChromeStorageHelper.getItems()
+            .then((items) => {
                 this.highScoreDisplay.show(0, items.hitHighScore);
                 this.hitHighScore = items.hitHighScore;
-            },
-            true
-        );
+            });
     }
 
     showFavIconBabyHead() {
@@ -127,7 +125,9 @@ class FBH {
 
     setBabyHeadTimeout() {
         if (this.nextAppearanceTimeoutId) {
-            return;
+            clearTimeout(this.nextAppearanceTimeoutId);
+            this.nextAppearanceTimeoutId = null;
+            this.nextAppearanceTime = null
         }
         const timeout = this.getTimeout();
         this.nextAppearanceTimeoutId = setTimeout(
@@ -160,17 +160,17 @@ class FBH {
             this.setBabyHeadTimeout();
         }
         if (hitCount) {
-            ChromeStorageHelper.getItems(
-                (items) => {
-                    const hitHighScore = Math.max(items.hitHighScore, hitCount);
-                    ChromeStorageHelper.setItems({
-                        totalHits: items.totalHits + hitCount,
-                        hitHighScore: hitHighScore
-                    });
-                    this.hitHighScore = hitHighScore;
-                },
-                true
-            );
+            ChromeStorageHelper.getItems()
+                .then(
+                    (items) => {
+                        const hitHighScore = Math.max(items.hitHighScore, hitCount);
+                        ChromeStorageHelper.setItems({
+                            totalHits: items.totalHits + hitCount,
+                            hitHighScore: hitHighScore
+                        });
+                        this.hitHighScore = hitHighScore;
+                    }
+                );
         }
     }
 
@@ -272,5 +272,15 @@ class FBH {
             return false;
         }
         return new Date().getTime() - expectedAppearanceTime > FBH.MINUTE;
+    }
+
+    reloadOptions() {
+        ChromeStorageHelper.getItems()
+            .then((items) => {
+                this.timing = items.timing;
+                this.images = items.images;
+                this.disabledDomains = items.disabledDomains;
+                this.setBabyHeadTimeout();
+            });
     }
 }
