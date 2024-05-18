@@ -1,4 +1,4 @@
-// Copyright 2022 Greg Arnell.
+// Copyright 2024 Greg Arnell.
 
 /*jslint node: true */
 'use strict';
@@ -16,6 +16,7 @@
         $('#addImageUrl').click(() => this.addImageUrlField());
         $('#addDomain').click(() => this.addDisabledDomainField());
         $('#resetHighScore').click(() => this.resetHighScore());
+        $('#animationDuration').on('change', () => this.animationDurationChanged())
     }
 
     /**
@@ -45,6 +46,7 @@
         const images = [];
         const disabledDomains = [];
         const timingType = $('input[name="timing"]:checked').val();
+        const animationDuration = $('#animationDuration').val();
 
         for (let i = 0; i < this.imageUrlFields.length; i++) {
             const imageUrl = this.imageUrlFields[i].getValue();
@@ -85,7 +87,8 @@
                 timing: {
                     type: timingType,
                     data: timingData
-                }
+                },
+                animationDuration
             })
             .then(() => {
                 this.showStatus();
@@ -150,6 +153,10 @@
                     $('#' + items.timing.type).prop('checked', true);
                     $('#' + items.timing.type + 'Value').val(items.timing.data);
                 }
+                if (items.animationDuration) {
+                    $('#animationDuration').val(items.animationDuration);
+                    $('#animationDurationValue').html(items.animationDuration);
+                }
             });
     }
 
@@ -188,5 +195,10 @@
                     });
                 }
             });
+    }
+
+    animationDurationChanged() {
+        const val = $('#animationDuration').val();
+        $('#animationDurationValue').html(val);
     }
 };

@@ -1,20 +1,23 @@
-// Copyright 2022 Greg Arnell.
+// Copyright 2024 Greg Arnell.
 
 /*jslint node: true */
 'use strict';
 
 class FBH {
     /**
-    * @param {Object[]} images image configs of images to display
-    * @param {Object} timing
-    * @param {String} timing.type
-    * @param {Object} timing.data
-    * @param {Number} hitHighScore
-    * @param {String[]} disabledDomains
+    * @param {Object} config Configuration
+    * @param {Object[]} config.images image configs of images to display
+    * @param {Object} config.timing
+    * @param {String} config.timing.type
+    * @param {Object} config.timing.data
+    * @param {Number} config.animationDuration
+    * @param {Number} config.hitHighScore
+    * @param {String[]} config.disabledDomains
     */
-    constructor(images, timing, hitHighScore, disabledDomains) {
+    constructor({images, timing, animationDuration, hitHighScore, disabledDomains}) {
         this.images = images;
         this.timing = timing;
+        this.animationDuration = animationDuration;
         this.hitHighScore = hitHighScore;
         this.disabledDomains = disabledDomains;
         this.highScoreDisplay = new HighScoreDisplay();
@@ -27,9 +30,7 @@ class FBH {
 
     static MINUTE = 60000;
     static DAY = 86400000;
-    static ANIMATION_DURATION = 3000;
     static ANIMATION_ROTATION_CHANCE = 80;
-    static FAVICON_DURATION = 4000;
     static FAVICON_SWAP_CHANCE = 5;
 
     start() {
@@ -88,7 +89,7 @@ class FBH {
         if (RandUtil.getRandBool(FBH.ANIMATION_ROTATION_CHANCE)) {
             angle = RandUtil.getRand(180) - 90;
         }
-        floatingImage.show(pos, FBH.ANIMATION_DURATION, angle);
+        floatingImage.show(pos, this.getAnimationDurationMs(), angle);
 
         ChromeStorageHelper.getItems()
             .then((items) => {
@@ -114,7 +115,7 @@ class FBH {
                         this.showingFavIcon = false;
                         this.setBabyHeadTimeout();
                     },
-                    FBH.FAVICON_DURATION
+                    this.getAnimationDurationMs()
                 );
             })
             .catch(() => {
@@ -248,7 +249,7 @@ class FBH {
         this.highScoreDisplay.show(floatingImage.hitCount, this.hitHighScore);
         data.event.preventDefault();
         floatingImage.applyCss('-webkit-filter', this.getWebkitFilter());
-        floatingImage.animate(end, FBH.ANIMATION_DURATION / 2);
+        floatingImage.animate(end, this.getAnimationDurationMs() / 2);
     }
 
     getWebkitFilter() {
@@ -274,10 +275,15 @@ class FBH {
         return new Date().getTime() - expectedAppearanceTime > FBH.MINUTE;
     }
 
+    getAnimationDurationMs() {
+        return this.animationDuration * 1000;
+    }
+
     reloadOptions() {
         ChromeStorageHelper.getItems()
             .then((items) => {
                 this.timing = items.timing;
+                this.animationDuration = items.animationDuration;
                 this.images = items.images;
                 this.disabledDomains = items.disabledDomains;
                 this.setBabyHeadTimeout();

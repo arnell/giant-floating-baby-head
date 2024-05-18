@@ -1,4 +1,4 @@
-// Copyright 2022 Greg Arnell.
+// Copyright 2024 Greg Arnell.
 
 /*jslint node: true */
 'use strict';
@@ -18,6 +18,7 @@ class ChromeStorageHelper {
                     images: [],
                     disabledDomains: [],
                     timing: null,
+                    animationDuration: 3,
                     hitHighScore: 0,
                     totalHits: 0,
                     // backwards compatibility:

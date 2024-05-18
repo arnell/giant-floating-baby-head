@@ -1,4 +1,4 @@
-<!-- Copyright 2022 Greg Arnell. -->
+<!-- Copyright 2024 Greg Arnell. -->
 
 <!DOCTYPE html>
 <html>
@@ -29,7 +29,7 @@
         </fieldset>
         <br>
         <fieldset>
-            <legend>Timing:</legend>
+            <legend>Schedule:</legend>
 
             When do you want the floating baby head to appear?
             <br><input id="random" type="radio" name="timing" value="random" checked> Random
@@ -38,6 +38,13 @@
 
             <br><em class="info">You can trigger the appearance of the GFBH by pressing Ctrl+Shift+F on most webpages.
             <br>The keyboard shortcut is configurable in your Chrome extensions settings: chrome://extensions/shortcuts</em>
+        </fieldset>
+        <br>
+        <fieldset>
+            <legend>Duration:</legend>
+
+            How long do you want it to take the floating baby head to cross the browser window?
+            <br><input type="range" id="animationDuration" name="animationDuration" min=".1" max="10" step=".1" />(<span id="animationDurationValue"></span> seconds)
         </fieldset>
         <br>
         <fieldset>
