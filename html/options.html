@@ -44,7 +44,11 @@
             <legend>Duration:</legend>
 
             How long do you want it to take the floating baby head to cross the browser window?
-            <br><input type="range" id="animationDuration" name="animationDuration" min=".1" max="10" step=".1" />(<span id="animationDurationValue"></span> seconds)
+            <br>
+            <input id="animationDurationTypeExact" type="radio" name="animationDurationType" value="exact" checked /> Exactly
+            <input type="range" id="animationDurationValue" name="animationDurationValue" min=".1" max="10" step=".1" />(<span id="animationDurationValueText"></span> seconds)
+            <br>
+            <input id="animationDurationTypeRandom" type="radio" name="animationDurationType" value="random" /> Random
         </fieldset>
         <br>
         <fieldset>
@@ -64,7 +68,7 @@
         <br><button id="resetHighScore">Reset High Score</button>
 
         <br><br>Am I missing a setting you'd like to configure? Did you find a bug? Do you want to help by translating this page?
-        <ul><li>Let me know at <a href="https://github.com/arnell/giant-floating-baby-head/issues" target="_blank">https://github.com/arnell/giant-floating-baby-head/issues</a> or greg.arnell@gmail.com!</li></ul>
+        <ul><li>Let me know at <a href="https://github.com/arnell/giant-floating-baby-head/issues" target="_blank">https://github.com/arnell/giant-floating-baby-head/issues</a>!</li></ul>
         <br>Don't forget to <a href="https://chrome.google.com/webstore/detail/dikflngfkaandpfjpaonobhjjpdbacni" target="_blank">rate the extension</a>!
     </body>
 </html>

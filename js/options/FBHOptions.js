@@ -16,7 +16,7 @@
         $('#addImageUrl').click(() => this.addImageUrlField());
         $('#addDomain').click(() => this.addDisabledDomainField());
         $('#resetHighScore').click(() => this.resetHighScore());
-        $('#animationDuration').on('change', () => this.animationDurationChanged())
+        $('#animationDurationValue').on('change', () => this.animationDurationValueChanged());
     }
 
     /**
@@ -46,7 +46,8 @@
         const images = [];
         const disabledDomains = [];
         const timingType = $('input[name="timing"]:checked').val();
-        const animationDuration = $('#animationDuration').val();
+        const animationDurationType = $('input[name="animationDurationType"]:checked').val();
+        const animationDurationValue = $('#animationDurationValue').val();
 
         for (let i = 0; i < this.imageUrlFields.length; i++) {
             const imageUrl = this.imageUrlFields[i].getValue();
@@ -88,7 +89,10 @@
                     type: timingType,
                     data: timingData
                 },
-                animationDuration
+                animationDuration: {
+                    type: animationDurationType,
+                    data: animationDurationValue
+                }
             })
             .then(() => {
                 this.showStatus();
@@ -154,8 +158,13 @@
                     $('#' + items.timing.type + 'Value').val(items.timing.data);
                 }
                 if (items.animationDuration) {
-                    $('#animationDuration').val(items.animationDuration);
-                    $('#animationDurationValue').html(items.animationDuration);
+                    if (items.animationDuration.type === 'random') {
+                        $('#animationDurationTypeRandom').prop('checked', true);
+                    } else {
+                        $('#animationDurationTypeExact').prop('checked', true);
+                    }
+                    $('#animationDurationValue').val(items.animationDuration.data);
+                    $('#animationDurationValueText').html(items.animationDuration.data);
                 }
             });
     }
@@ -197,8 +206,8 @@
             });
     }
 
-    animationDurationChanged() {
-        const val = $('#animationDuration').val();
-        $('#animationDurationValue').html(val);
+    animationDurationValueChanged() {
+        const val = $('#animationDurationValue').val();
+        $('#animationDurationValueText').html(val);
     }
 };

@@ -240,8 +240,9 @@ class FBH {
                     timeTil += FBH.DAY;
                 }
                 return timeTil;
+            default:
+                return (RandUtil.getRand(4) + 1) * 10 * FBH.MINUTE;
         }
-        return (RandUtil.getRand(4) + 1) * 10 * FBH.MINUTE;
     }
 
     onBabyHeadClick(floatingImage, data) {
@@ -276,7 +277,11 @@ class FBH {
     }
 
     getAnimationDurationMs() {
-        return this.animationDuration * 1000;
+        if (this.animationDuration.type === 'exact') {
+            return this.animationDuration.data * 1000;
+        } else if (this.animationDuration.type === 'random') {
+            return RandUtil.getRand(45) * 100 + 500;
+        }
     }
 
     reloadOptions() {

@@ -18,7 +18,10 @@ class ChromeStorageHelper {
                     images: [],
                     disabledDomains: [],
                     timing: null,
-                    animationDuration: 3,
+                    animationDuration: {
+                        type: 'exact',
+                        data: '3'
+                    },
                     hitHighScore: 0,
                     totalHits: 0,
                     // backwards compatibility:
@@ -32,6 +35,13 @@ class ChromeStorageHelper {
                     } else if (options.populateDefaultImage && !items.images.length) {
                         items.images = [{url: chrome.runtime.getURL('img/baby_head.png')}];
                     }
+
+                    // In order to be backwards compatible, if the animationDuration field is a duration value,
+                    // then change it to the object format.
+                    if (typeof items.animationDuration === 'string') {
+                        items.animationDuration = {type: 'exact', data: items.animationDuration}
+                    }
+
                     resolve(items);
                 }
             );
